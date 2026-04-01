@@ -1,0 +1,68 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 38 38% 96%;
+    --foreground: 26 26% 16%;
+    --card: 0 0% 100%;
+    --card-foreground: 26 26% 16%;
+    --primary: 32 72% 42%;
+    --primary-foreground: 36 60% 98%;
+    --secondary: 84 26% 22%;
+    --secondary-foreground: 48 33% 96%;
+    --muted: 38 22% 89%;
+    --muted-foreground: 26 12% 38%;
+    --accent: 38 72% 88%;
+    --accent-foreground: 24 46% 22%;
+    --border: 34 24% 82%;
+    --input: 34 24% 82%;
+    --ring: 32 72% 42%;
+    --destructive: 0 72% 46%;
+    --destructive-foreground: 0 0% 98%;
+    --radius: 1rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply h-full scroll-smooth;
+  }
+
+  body {
+    @apply min-h-full bg-background text-foreground antialiased;
+    background-image:
+      radial-gradient(circle at top right, rgba(162, 127, 69, 0.16), transparent 34%),
+      linear-gradient(180deg, #fcfaf6 0%, #f1ece1 100%);
+  }
+
+  #root {
+    @apply min-h-screen;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display tracking-tight text-foreground;
+  }
+
+  a {
+    @apply transition-colors;
+  }
+}
+
+@layer components {
+  .surface-panel {
+    @apply rounded-[28px] border border-border/80 bg-card/90 shadow-glow backdrop-blur;
+  }
+
+  .page-edge {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+}
