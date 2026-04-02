@@ -122,7 +122,7 @@ export function CategoriesManagement() {
         </Button>
       }
     >
-      <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+      <section className="grid gap-4 sm:gap-6 lg:grid-cols-[1fr_350px]">
         <Card className="bg-white/92">
           <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -148,67 +148,115 @@ export function CategoriesManagement() {
                 )}
               />
             ) : categoriesQuery.data?.length ? (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Menu Items</TableHead>
-                      <TableHead>Sort Order</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {categoriesQuery.data.map((category) => (
-                      <TableRow key={category.id}>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <p className="font-semibold">{category.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              Created {new Date(category.createdAt).toLocaleDateString("en-IN")}
-                            </p>
-                          </div>
-                        </TableCell>
-                        <TableCell>{category.menuItemCount}</TableCell>
-                        <TableCell>{category.sortOrder}</TableCell>
-                        <TableCell>
-                          <span
-                            className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                              category.isActive
-                                ? "bg-emerald-100 text-emerald-900"
-                                : "bg-stone-200 text-stone-700"
-                            }`}
-                          >
-                            {category.isActive ? "Active" : "Hidden"}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => startEditing(category)}
-                            >
-                              <Pencil className="mr-2 h-4 w-4" />
-                              Edit
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                              onClick={() => handleDelete(category)}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Delete
-                            </Button>
-                          </div>
-                        </TableCell>
+              <>
+                {/* Mobile view */}
+                <div className="grid gap-3 sm:hidden">
+                  {categoriesQuery.data.map((category) => (
+                    <div key={category.id} className="rounded-xl border bg-white p-4 shadow-sm">
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                          <p className="font-bold text-foreground">{category.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {category.menuItemCount} dishes · Sort: {category.sortOrder}
+                          </p>
+                        </div>
+                        <span
+                          className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                            category.isActive
+                              ? "bg-emerald-100 text-emerald-900"
+                              : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          {category.isActive ? "Active" : "Hidden"}
+                        </span>
+                      </div>
+                      <div className="mt-4 flex gap-2">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => startEditing(category)}
+                        >
+                          <Pencil className="mr-2 h-4 w-4" />
+                          Edit
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="flex-1 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          onClick={() => handleDelete(category)}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Desktop view */}
+                <div className="hidden sm:block overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Menu Items</TableHead>
+                        <TableHead>Sort Order</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                    </TableHeader>
+                    <TableBody>
+                      {categoriesQuery.data.map((category) => (
+                        <TableRow key={category.id}>
+                          <TableCell>
+                            <div className="space-y-1">
+                              <p className="font-bold text-foreground">{category.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                Created {new Date(category.createdAt).toLocaleDateString("en-IN")}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell>{category.menuItemCount}</TableCell>
+                          <TableCell>{category.sortOrder}</TableCell>
+                          <TableCell>
+                            <span
+                              className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+                                category.isActive
+                                  ? "bg-emerald-100 text-emerald-900"
+                                  : "bg-stone-200 text-stone-700"
+                              }`}
+                            >
+                              {category.isActive ? "Active" : "Hidden"}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => startEditing(category)}
+                              >
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                onClick={() => handleDelete(category)}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
             ) : (
               <EmptyState
                 title="No categories yet"

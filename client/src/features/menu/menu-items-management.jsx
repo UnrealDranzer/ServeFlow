@@ -177,7 +177,7 @@ export function MenuItemsManagement() {
         </Button>
       }
     >
-      <section className="grid gap-6 xl:grid-cols-[1.28fr_0.72fr]">
+      <section className="grid gap-4 sm:gap-6 lg:grid-cols-[1fr_350px]">
         <div className="space-y-6">
           <Card className="bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(247,240,228,0.95))]">
             <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -248,7 +248,67 @@ export function MenuItemsManagement() {
                   )}
                 />
               ) : menuItemsQuery.data?.length ? (
-                <div className="overflow-x-auto">
+              <>
+                {/* Mobile view */}
+                <div className="grid gap-3 sm:hidden">
+                  {menuItemsQuery.data.map((menuItem) => (
+                    <div key={menuItem.id} className="rounded-xl border bg-white p-4 shadow-sm">
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-bold text-foreground">{menuItem.name}</p>
+                            {menuItem.isVeg ? (
+                              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-900 uppercase">
+                                Veg
+                              </span>
+                            ) : null}
+                          </div>
+                          <p className="font-bold text-sm">{formatCurrency(menuItem.price, currency)}</p>
+                          <p className="text-xs text-muted-foreground">{menuItem.category?.name || "No category"}</p>
+                        </div>
+                      </div>
+                      <div className="mt-3 flex items-center gap-3 rounded-lg border bg-muted/20 px-3 py-2">
+                        <span className="text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                          {menuItem.isAvailable ? "Live on Menu" : "Hidden"}
+                        </span>
+                        <div className="ml-auto">
+                          <Switch
+                            checked={menuItem.isAvailable}
+                            onCheckedChange={(checked) =>
+                              availabilityMutation.mutate({
+                                menuItemId: menuItem.id,
+                                isAvailable: checked
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+                      <div className="mt-3 flex gap-2">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="flex-1 font-bold"
+                          onClick={() => startEditing(menuItem)}
+                        >
+                          <Pencil className="mr-2 h-4 w-4" />
+                          Edit
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="flex-1 font-bold text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          onClick={() => handleDelete(menuItem)}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Desktop view */}
+                <div className="hidden sm:block overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -265,9 +325,9 @@ export function MenuItemsManagement() {
                           <TableCell>
                             <div className="space-y-1">
                               <div className="flex items-center gap-2">
-                                <p className="font-semibold">{menuItem.name}</p>
+                                <p className="font-bold">{menuItem.name}</p>
                                 {menuItem.isVeg ? (
-                                  <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-900">
+                                  <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-900">
                                     Veg
                                   </span>
                                 ) : null}
@@ -278,7 +338,7 @@ export function MenuItemsManagement() {
                             </div>
                           </TableCell>
                           <TableCell>{menuItem.category?.name || "-"}</TableCell>
-                          <TableCell className="font-semibold">
+                          <TableCell className="font-bold">
                             {formatCurrency(menuItem.price, currency)}
                           </TableCell>
                           <TableCell>
@@ -292,7 +352,7 @@ export function MenuItemsManagement() {
                                   })
                                 }
                               />
-                              <span className="text-sm text-muted-foreground">
+                              <span className="text-sm font-semibold text-muted-foreground">
                                 {menuItem.isAvailable ? "Live" : "Hidden"}
                               </span>
                             </div>
@@ -323,6 +383,7 @@ export function MenuItemsManagement() {
                     </TableBody>
                   </Table>
                 </div>
+              </>
               ) : (
                 <EmptyState
                   title="No menu items match this view"
