@@ -85,8 +85,15 @@ export async function createManualOrderForBusiness(businessId, userId, input) {
     });
 
     return createOrderRecord(tx, {
-      businessId,
-      orderSourceId: source.id,
+      business: { connect: { id: businessId } },
+      orderSource: { 
+        connect: { 
+          id_businessId: { 
+            id: source.id, 
+            businessId 
+          } 
+        } 
+      },
       orderType: "MANUAL",
       status: "NEW",
       subtotal: draft.subtotal,
@@ -96,7 +103,10 @@ export async function createManualOrderForBusiness(businessId, userId, input) {
       customerNote: input.customerNote,
       placedByUserId: userId,
       items: {
-        create: draft.orderItemsData.map(({ businessId: _, ...item }) => item)
+        create: draft.orderItemsData.map(item => ({
+          ...item,
+          business: { connect: { id: businessId } }
+        }))
       }
     });
   });

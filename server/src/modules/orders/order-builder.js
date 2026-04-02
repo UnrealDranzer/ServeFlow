@@ -49,7 +49,6 @@ export async function buildOrderDraft({ tx = prisma, businessId, items }) {
     subtotal = subtotal.add(lineTotal);
 
     return {
-      businessId,
       menuItemId: menuItem.id,
       itemNameSnapshot: menuItem.name,
       itemPriceSnapshot: itemPrice,

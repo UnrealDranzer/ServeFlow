@@ -116,8 +116,15 @@ export async function createPublicOrder(businessSlug, sourceSlug, input) {
     });
 
     return createOrderRecord(tx, {
-      businessId: business.id,
-      orderSourceId: source.id,
+      business: { connect: { id: business.id } },
+      orderSource: { 
+        connect: { 
+          id_businessId: { 
+            id: source.id, 
+            businessId: business.id 
+          } 
+        } 
+      },
       orderType: "QR",
       status: "NEW",
       subtotal: draft.subtotal,
@@ -125,9 +132,11 @@ export async function createPublicOrder(businessSlug, sourceSlug, input) {
       discountAmount: draft.discountAmount,
       total: draft.total,
       customerNote: input.customerNote,
-      placedByUserId: null,
       items: {
-        create: draft.orderItemsData.map(({ businessId: _, ...item }) => item)
+        create: draft.orderItemsData.map(item => ({
+          ...item,
+          business: { connect: { id: business.id } }
+        }))
       }
     });
   });
