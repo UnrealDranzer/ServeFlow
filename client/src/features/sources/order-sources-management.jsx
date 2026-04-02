@@ -67,14 +67,15 @@ export function OrderSourcesManagement() {
   });
 
   useEffect(() => {
-    if (!qrQuery.data?.qrUrl) {
+    if (!qrQuery.data?.publicPath) {
       setQrPreviewUrl("");
       return;
     }
 
     let isActive = true;
+    const dynamicUrl = `${window.location.origin}${qrQuery.data.publicPath}`;
 
-    QRCode.toDataURL(qrQuery.data.qrUrl, {
+    QRCode.toDataURL(dynamicUrl, {
       margin: 1,
       width: 260,
       color: {
@@ -166,11 +167,12 @@ export function OrderSourcesManagement() {
   }
 
   async function copyQrUrl() {
-    if (!qrQuery.data?.qrUrl) {
+    if (!qrQuery.data?.publicPath) {
       return;
     }
 
-    await navigator.clipboard.writeText(qrQuery.data.qrUrl);
+    const dynamicUrl = `${window.location.origin}${qrQuery.data.publicPath}`;
+    await navigator.clipboard.writeText(dynamicUrl);
   }
 
   function downloadQrCode() {
@@ -458,8 +460,8 @@ export function OrderSourcesManagement() {
                       </div>
                     ) : null}
                   </div>
-                  <div className="rounded-3xl border border-border/80 bg-white/80 px-4 py-4 text-sm text-muted-foreground">
-                    {qrQuery.data.qrUrl}
+                  <div className="rounded-3xl border border-border/80 bg-white/80 px-4 py-4 text-sm text-muted-foreground break-all">
+                    {`${window.location.origin}${qrQuery.data.publicPath}`}
                   </div>
                   <div className="flex flex-wrap gap-3">
                     <Button type="button" variant="outline" onClick={copyQrUrl}>
