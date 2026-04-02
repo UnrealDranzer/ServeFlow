@@ -45,8 +45,8 @@ export function findActiveOrderSourceForBusiness(businessId, sourceId) {
   });
 }
 
-export function findOrderById(businessId, orderId) {
-  return prisma.order.findFirst({
+export function findOrderById(businessId, orderId, tx = prisma) {
+  return tx.order.findFirst({
     where: {
       id: orderId,
       businessId

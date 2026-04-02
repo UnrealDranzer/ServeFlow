@@ -140,7 +140,7 @@ export async function createPublicOrder(businessSlug, sourceSlug, input) {
       });
     }
 
-    return findOrderById(business.id, order.id);
+    return findOrderById(business.id, order.id, tx);
   });
 
   return toPublicOrderPlacedDto(order);

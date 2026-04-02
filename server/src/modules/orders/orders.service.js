@@ -109,7 +109,7 @@ export async function createManualOrderForBusiness(businessId, userId, input) {
       });
     }
 
-    return findOrderById(businessId, order.id);
+    return findOrderById(businessId, order.id, tx);
   });
 
   return toOrderDetailDto(order);
