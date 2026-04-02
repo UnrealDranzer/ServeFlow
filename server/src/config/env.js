@@ -13,7 +13,7 @@ const envSchema = z.object({
   BCRYPT_SALT_ROUNDS: z.coerce.number().int().min(10).max(14).default(12),
   COOKIE_DOMAIN: z.string().optional(),
   TRUST_PROXY: z.coerce.number().int().min(0).default(0),
-  REQUEST_BODY_LIMIT: z.string().min(2).default("256kb"),
+  REQUEST_BODY_LIMIT: z.string().min(2).default("2mb"),
   API_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().min(1000).default(60_000),
   API_RATE_LIMIT_MAX: z.coerce.number().int().min(1).default(300),
   AUTH_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().min(1000).default(60_000),

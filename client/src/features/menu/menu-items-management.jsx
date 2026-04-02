@@ -1,6 +1,6 @@
 import { useDeferredValue, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
+import { Camera, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { PageShell } from "@/components/layout/page-shell";
 import {
@@ -165,6 +165,53 @@ export function MenuItemsManagement() {
     setErrorMessage("");
     deleteMutation.mutate(menuItem.id);
   }
+
+  const handleImageUpload = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Optional: add loading state here if desired
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        
+        let width = img.width;
+        let height = img.height;
+        const maxDim = 500;
+
+        if (width > height) {
+          if (width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          }
+        } else {
+          if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.75); // compresses nicely for db
+        setFormState((currentState) => ({
+          ...currentState,
+          imageUrl: dataUrl
+        }));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+    
+    // Reset the input so the same file can be selected again if removed
+    event.target.value = "";
+  };
 
   return (
     <PageShell
@@ -502,19 +549,54 @@ export function MenuItemsManagement() {
                   }
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="menuItemImage">Image URL</Label>
-                <Input
-                  id="menuItemImage"
-                  placeholder="https://cdn.example.com/images/saffron-rose-latte.jpg"
-                  value={formState.imageUrl}
-                  onChange={(event) =>
-                    setFormState((currentState) => ({
-                      ...currentState,
-                      imageUrl: event.target.value
-                    }))
-                  }
-                />
+              <div className="space-y-4">
+                <Label htmlFor="menuItemImage">Image</Label>
+                <div className="flex flex-col gap-3">
+                  {formState.imageUrl && (
+                    <div className="relative h-32 w-32 shrink-0 overflow-hidden rounded-2xl border bg-muted">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={formState.imageUrl} alt="Preview" className="h-full w-full object-cover" />
+                      <button
+                        type="button"
+                        className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm hover:bg-black/70"
+                        onClick={() => setFormState(s => ({ ...s, imageUrl: "" }))}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  )}
+                  <div className="flex flex-col gap-2">
+                    <Label
+                      htmlFor="image-upload"
+                      className="inline-flex cursor-pointer items-center justify-center rounded-xl bg-secondary px-4 py-3 text-sm font-semibold text-secondary-foreground hover:bg-secondary/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    >
+                      <Camera className="mr-2 h-4 w-4" />
+                      Upload / Take Photo
+                    </Label>
+                    <Input
+                      id="image-upload"
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      onChange={handleImageUpload}
+                    />
+                    <div className="flex items-center gap-2">
+                       <span className="text-xs text-muted-foreground w-full text-center uppercase font-bold tracking-widest">or</span>
+                    </div>
+                    <Input
+                      placeholder="Paste Image URL here instead..."
+                      value={formState.imageUrl}
+                      onChange={(event) =>
+                        setFormState((currentState) => ({
+                          ...currentState,
+                          imageUrl: event.target.value
+                        }))
+                      }
+                      className="text-xs"
+                    />
+                  </div>
+                </div>
               </div>
               <div className="space-y-3 rounded-3xl border border-border/80 bg-white/80 p-4">
                 <ToggleRow

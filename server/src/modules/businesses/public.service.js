@@ -127,7 +127,7 @@ export async function createPublicOrder(businessSlug, sourceSlug, input) {
       customerNote: input.customerNote,
       placedByUserId: null,
       items: {
-        create: draft.orderItemsData
+        create: draft.orderItemsData.map(({ businessId: _, ...item }) => item)
       }
     });
   });
