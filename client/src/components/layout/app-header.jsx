@@ -5,12 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 const pathToLabelMap = {
-  "/app/dashboard": "Dashboard",
+  "/app/dashboard": "Home",
   "/app/orders": "Orders",
-  "/app/orders/new": "Manual Order",
+  "/app/orders/new": "New Order",
   "/app/categories": "Categories",
-  "/app/menu-items": "Menu Items",
-  "/app/order-sources": "Order Sources",
+  "/app/menu-items": "Dishes",
+  "/app/order-sources": "Tables & QR",
   "/app/settings": "Settings"
 };
 
@@ -19,24 +19,24 @@ export function AppHeader() {
   const auth = useAuth();
 
   return (
-    <header className="surface-panel flex flex-col gap-4 px-4 py-4 sm:px-5 lg:flex-row lg:items-center lg:justify-between">
+    <header className="surface-panel flex flex-col gap-3 px-4 py-3 sm:gap-4 sm:px-5 sm:py-4 lg:flex-row lg:items-center lg:justify-between">
       <div className="min-w-0">
         <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground sm:text-xs">
           {pathToLabelMap[location.pathname] || "ServeFlow"}
         </p>
-        <div className="mt-2 flex flex-wrap items-center gap-2 sm:gap-3">
-          <h2 className="truncate text-xl sm:text-2xl">{auth.business?.name || "Workspace"}</h2>
-          <Badge variant="outline">
-            {auth.user?.role === "owner" ? "Owner access" : "Staff access"}
+        <div className="mt-1 flex flex-wrap items-center gap-2 sm:mt-2 sm:gap-3">
+          <h2 className="truncate text-lg sm:text-2xl">{auth.business?.name || "Your Store"}</h2>
+          <Badge variant="outline" className="text-[10px] sm:text-xs">
+            {auth.user?.role === "owner" ? "Owner" : "Staff"}
           </Badge>
         </div>
       </div>
-      <div className="flex flex-wrap items-center gap-2 sm:gap-3 lg:justify-end">
-        <div className="rounded-full bg-accent px-3 py-2 text-xs text-accent-foreground sm:px-4 sm:text-sm">
+      <div className="flex items-center gap-2 sm:gap-3 lg:justify-end">
+        <div className="rounded-full bg-accent px-3 py-1.5 text-xs text-accent-foreground sm:px-4 sm:py-2 sm:text-sm">
           {auth.user?.name || "Team member"}
         </div>
-        <Button className="w-full sm:w-auto" variant="outline" size="sm" onClick={auth.logout}>
-          <LogOut className="mr-2 h-4 w-4" />
+        <Button variant="outline" size="sm" onClick={auth.logout} className="h-9 px-3 text-xs sm:h-10 sm:px-4 sm:text-sm">
+          <LogOut className="mr-1.5 h-3.5 w-3.5 sm:mr-2 sm:h-4 sm:w-4" />
           Logout
         </Button>
       </div>

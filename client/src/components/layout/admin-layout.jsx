@@ -9,16 +9,14 @@ export function AdminLayout() {
         <aside className="hidden lg:sticky lg:top-6 lg:block lg:h-[calc(100vh-3rem)]">
           <AdminNavigation />
         </aside>
-        <main className="min-w-0 space-y-4 sm:space-y-6">
-          <div className="sticky top-3 z-20 lg:hidden">
-            <AdminNavigation mobile />
-          </div>
+        <main className="min-w-0 space-y-4 has-bottom-nav sm:space-y-6 lg:pb-0">
           <AppHeader />
           <div className="surface-panel min-h-[calc(100vh-9rem)] p-4 sm:p-5 lg:min-h-[calc(100vh-11rem)] lg:p-6">
             <Outlet />
           </div>
         </main>
       </div>
+      <AdminNavigation mobile />
     </div>
   );
 }

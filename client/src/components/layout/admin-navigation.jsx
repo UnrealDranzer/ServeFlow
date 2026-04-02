@@ -17,42 +17,49 @@ const navigationItems = [
   {
     to: "/app/dashboard",
     label: "Home",
+    shortLabel: "Home",
     icon: BarChart3,
     roles: ["owner", "staff"]
   },
   {
     to: "/app/orders",
-    label: "Orders List",
+    label: "Orders",
+    shortLabel: "Orders",
     icon: ListOrdered,
     roles: ["owner", "staff"]
   },
   {
     to: "/app/orders/new",
-    label: "Take Order",
+    label: "New Order",
+    shortLabel: "New",
     icon: LayoutGrid,
     roles: ["owner", "staff"]
   },
   {
     to: "/app/categories",
-    label: "Menu Sections",
+    label: "Categories",
+    shortLabel: "Menu",
     icon: Tags,
     roles: ["owner"]
   },
   {
     to: "/app/menu-items",
     label: "Dishes",
+    shortLabel: "Dishes",
     icon: Soup,
     roles: ["owner"]
   },
   {
     to: "/app/order-sources",
     label: "Tables / QR",
+    shortLabel: "Tables",
     icon: QrCode,
     roles: ["owner"]
   },
   {
     to: "/app/settings",
     label: "Settings",
+    shortLabel: "Settings",
     icon: Settings2,
     roles: ["owner"]
   }
@@ -64,22 +71,11 @@ export function AdminNavigation({ mobile = false }) {
 
   if (mobile) {
     return (
-      <div className="surface-panel overflow-hidden bg-white/95 backdrop-blur">
-        <div className="flex items-center justify-between gap-3 border-b border-border/40 px-4 py-4">
-          <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground/60">
-              Active Store
-            </p>
-            <p className="truncate font-display text-lg font-bold text-foreground">
-              {auth.business?.name || "ServeFlow"}
-            </p>
-          </div>
-          <Badge variant="secondary" className="rounded-md px-2 py-1 text-[10px] font-bold uppercase">
-            {auth.user?.role === "owner" ? "Admin" : "Staff"}
-          </Badge>
-        </div>
-        <div className="flex items-center gap-3 overflow-x-auto px-3 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {visibleItems.map((item) => {
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/60 bg-white/95 backdrop-blur-lg lg:hidden"
+        style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+      >
+        <div className="flex items-stretch justify-around">
+          {visibleItems.slice(0, 5).map((item) => {
             const Icon = item.icon;
 
             return (
@@ -88,20 +84,20 @@ export function AdminNavigation({ mobile = false }) {
                 to={item.to}
                 className={({ isActive }) =>
                   cn(
-                    "flex min-w-fit items-center gap-2 whitespace-nowrap rounded-full px-3 py-2 text-xs font-semibold transition-all",
+                    "flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-semibold transition-colors",
                     isActive
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "bg-secondary/65 text-muted-foreground hover:bg-secondary hover:text-foreground"
+                      ? "text-primary"
+                      : "text-muted-foreground"
                   )
                 }
               >
-                <Icon className="h-3.5 w-3.5" />
-                <span>{item.label}</span>
+                <Icon className="h-5 w-5" />
+                <span>{item.shortLabel}</span>
               </NavLink>
             );
           })}
         </div>
-      </div>
+      </nav>
     );
   }
 
@@ -113,14 +109,14 @@ export function AdminNavigation({ mobile = false }) {
       <div className="flex-1 space-y-6 overflow-y-auto p-6">
         <div className="rounded-xl bg-muted/50 p-4">
           <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
-            Active Store
+            Your Store
           </p>
           <p className="mt-1 font-display text-xl font-bold text-foreground">
             {auth.business?.name || "ServeFlow"}
           </p>
           <div className="mt-3 flex items-center gap-2">
             <Badge variant="secondary" className="rounded-md px-1.5 py-0 text-[10px] font-bold uppercase">
-              {auth.user?.role === "owner" ? "Admin" : "Staff"}
+              {auth.user?.role === "owner" ? "Owner" : "Staff"}
             </Badge>
           </div>
         </div>

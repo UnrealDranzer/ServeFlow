@@ -36,8 +36,8 @@ export function LoginPage() {
   if (!auth.isBootstrapped || auth.status === "loading") {
     return (
       <FullPageSpinner
-        title="Checking your workspace"
-        description="Restoring any active ServeFlow session before showing sign in."
+        title="Loading..."
+        description="Checking if you're already signed in."
       />
     );
   }
@@ -55,7 +55,7 @@ export function LoginPage() {
       await auth.login(form);
       navigate(location.state?.from || "/app/dashboard", { replace: true });
     } catch (error) {
-      setErrorMessage(getApiErrorMessage(error, "Unable to sign in to this business workspace."));
+      setErrorMessage(getApiErrorMessage(error, "Wrong store ID, email, or password. Please try again."));
     } finally {
       setIsSubmitting(false);
     }
@@ -73,34 +73,30 @@ export function LoginPage() {
   return (
     <AuthLayout>
       <Card className="w-full max-w-xl">
-        <CardHeader className="space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-            Secure Sign In
-          </p>
-          <CardTitle>Access your business dashboard</CardTitle>
+        <CardHeader className="space-y-2 sm:space-y-3">
+          <CardTitle className="text-xl sm:text-2xl">Welcome back</CardTitle>
           <CardDescription>
-            Use your business slug, account email, and password. Access tokens stay in memory,
-            and refresh sessions remain cookie-scoped.
+            Sign in with your store ID and account details to manage your business.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form className="space-y-5" onSubmit={handleSubmit}>
+          <form className="space-y-4 sm:space-y-5" onSubmit={handleSubmit}>
             {wasJustRegistered ? (
               <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-sm text-emerald-700">
-                Your business workspace is ready. Sign in with the owner email and business slug we
-                just prepared for you.
+                Your store is ready! Sign in with the email and store ID you just created.
               </div>
             ) : null}
             <div className="space-y-2">
-              <Label htmlFor="businessSlug">Business slug</Label>
+              <Label htmlFor="businessSlug">Store ID</Label>
               <Input
                 id="businessSlug"
                 autoComplete="organization"
-                placeholder="blue-mug-cafe"
+                placeholder="e.g. blue-mug-cafe"
                 value={form.businessSlug}
                 onChange={updateField("businessSlug")}
                 required
               />
+              <p className="text-xs text-muted-foreground">The unique name you chose when you set up your store.</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -108,7 +104,7 @@ export function LoginPage() {
                 id="email"
                 type="email"
                 autoComplete="email"
-                placeholder="owner@business.com"
+                placeholder="you@example.com"
                 value={form.email}
                 onChange={updateField("email")}
                 required
@@ -120,7 +116,7 @@ export function LoginPage() {
                 id="password"
                 type="password"
                 autoComplete="current-password"
-                placeholder="Enter your password"
+                placeholder="Your password"
                 value={form.password}
                 onChange={updateField("password")}
                 required
@@ -132,12 +128,12 @@ export function LoginPage() {
               </div>
             ) : null}
             <Button className="w-full" size="lg" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Signing in..." : "Sign in to ServeFlow"}
+              {isSubmitting ? "Signing in..." : "Sign In"}
             </Button>
             <div className="flex flex-col gap-3 rounded-[24px] border border-border/60 bg-secondary/45 px-4 py-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-              <p>New to ServeFlow? Create your business workspace first.</p>
+              <p>New here? Set up your store first.</p>
               <Button asChild variant="outline">
-                <Link to="/register">Register Business</Link>
+                <Link to="/register">Create Store</Link>
               </Button>
             </div>
           </form>

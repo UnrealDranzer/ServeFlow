@@ -105,14 +105,14 @@ export function ManualOrderBuilder() {
 
   return (
     <PageShell
-      title="Take Order"
-      description="Select a table and add items to create a new order."
+      title="New Order"
+      description="Pick a table and add dishes to send to the kitchen."
     >
-      <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+      <section className="grid gap-4 sm:gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-6">
           <Card className="border-none bg-muted/20 shadow-sm">
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-bold">1. Select Table</CardTitle>
+              <CardTitle className="text-base sm:text-lg font-bold">1. Pick a Table</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-[240px_1fr]">
               <div className="space-y-2">
@@ -144,7 +144,7 @@ export function ManualOrderBuilder() {
 
           <Card className="border-none bg-white shadow-sm">
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-bold">2. Choose Items</CardTitle>
+              <CardTitle className="text-base sm:text-lg font-bold">2. Add Dishes</CardTitle>
             </CardHeader>
             <CardContent>
               {menuItemsQuery.isLoading ? (
@@ -158,7 +158,7 @@ export function ManualOrderBuilder() {
                   )}
                 />
               ) : menuItemsQuery.data?.length ? (
-                <div className="grid gap-3 md:grid-cols-2">
+                <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
                   {menuItemsQuery.data.map((menuItem) => (
                     <button
                       key={menuItem.id}
@@ -299,7 +299,7 @@ export function ManualOrderBuilder() {
               disabled={!sourceId || !selectedItems.length || createOrderMutation.isPending}
               onClick={submitOrder}
             >
-              {createOrderMutation.isPending ? "SENDING..." : "SEND TO KITCHEN"}
+              {createOrderMutation.isPending ? "SENDING..." : "SEND ORDER"}
             </Button>
           </CardContent>
         </Card>

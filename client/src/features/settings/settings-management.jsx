@@ -106,8 +106,8 @@ export function SettingsManagement() {
 
   return (
     <PageShell
-      title="Business Settings"
-      description="Fine-tune the brand, ordering mode, and menu presentation rules that shape the ServeFlow experience."
+      title="Settings"
+      description="Update your store details, ordering options, and menu display preferences."
     >
       {settingsQuery.isError ? (
         <EmptyState
@@ -122,10 +122,9 @@ export function SettingsManagement() {
       <section className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
         <Card className="bg-white/92">
           <CardHeader>
-            <CardTitle>Business Identity</CardTitle>
+            <CardTitle>Store Details</CardTitle>
             <CardDescription>
-              Control how the business appears to staff and customers across the QR and admin
-              experience.
+              This info appears to your staff and customers.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -232,26 +231,26 @@ export function SettingsManagement() {
 
               <div className="space-y-3 rounded-[28px] border border-border/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.88),rgba(247,240,228,0.72))] p-4">
                 <SettingToggle
-                  title="Accepting orders"
-                  description="Pause public and operational order intake without deactivating the business."
+                  title="Taking orders"
+                  description="Turn off to temporarily stop accepting new orders."
                   checked={formState.acceptingOrders}
                   onCheckedChange={(checked) => updateForm("acceptingOrders", checked)}
                 />
                 <SettingToggle
-                  title="Show item images"
-                  description="Display menu imagery in the public QR menu."
+                  title="Show photos on menu"
+                  description="Display dish photos on the customer menu."
                   checked={formState.showImages}
                   onCheckedChange={(checked) => updateForm("showImages", checked)}
                 />
                 <SettingToggle
-                  title="Show item descriptions"
-                  description="Keep the public menu rich and editorial when enabled."
+                  title="Show descriptions"
+                  description="Show dish descriptions to customers."
                   checked={formState.showItemDescription}
                   onCheckedChange={(checked) => updateForm("showItemDescription", checked)}
                 />
                 <SettingToggle
                   title="Show veg badge"
-                  description="Highlight vegetarian items clearly in the public experience."
+                  description="Mark vegetarian dishes with a green dot."
                   checked={formState.showVegBadge}
                   onCheckedChange={(checked) => updateForm("showVegBadge", checked)}
                 />
@@ -280,8 +279,8 @@ export function SettingsManagement() {
                   <Store className="h-5 w-5" />
                 </div>
                 <div>
-                  <CardTitle>Brand Surface</CardTitle>
-                  <CardDescription>How the business appears in ServeFlow today.</CardDescription>
+                  <CardTitle>Your Store</CardTitle>
+                  <CardDescription>How your store looks to customers.</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -309,21 +308,20 @@ export function SettingsManagement() {
                   <Globe2 className="h-5 w-5" />
                 </div>
                 <div>
-                  <CardTitle>Public Menu Mood</CardTitle>
+                  <CardTitle>Menu Display</CardTitle>
                   <CardDescription>
-                    A premium QR menu depends on restraint as much as richness.
+                    Control what customers see on the QR menu.
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-3 text-sm leading-6 text-muted-foreground">
               <p>
-                Images, descriptions, and veg badges should support clarity, not clutter. The best
-                luxury hospitality interfaces feel calm, not crowded.
+                Photos, descriptions, and veg badges help customers choose faster.
+                Keep things clean and simple for the best experience.
               </p>
               <p>
-                These controls feed directly into the public menu response, so staff and customer
-                experiences stay in sync without frontend-only toggles.
+                These settings apply to both the QR menu and your ordering screens.
               </p>
             </CardContent>
           </Card>

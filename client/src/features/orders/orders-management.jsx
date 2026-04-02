@@ -27,7 +27,7 @@ import {
 } from "@/features/orders/orders-api";
 
 const statusOptions = [
-  { value: "", label: "All statuses" },
+  { value: "", label: "All" },
   { value: "new", label: "New" },
   { value: "accepted", label: "Accepted" },
   { value: "preparing", label: "Preparing" },
@@ -38,7 +38,7 @@ const statusOptions = [
 ];
 
 const orderTypeOptions = [
-  { value: "", label: "All order types" },
+  { value: "", label: "All types" },
   { value: "manual", label: "Manual" },
   { value: "qr", label: "QR" }
 ];
@@ -113,82 +113,107 @@ export function OrdersManagement() {
 
   return (
     <PageShell
-      title="Current Orders"
-      description="List of all orders being processed right now."
+      title="Orders"
+      description="View and manage all current orders."
       actions={
         <Button variant="ghost" size="sm" onClick={() => ordersQuery.refetch()} className="font-bold">
           <RefreshCcw className="mr-2 h-4 w-4" />
-          REFRESH
+          Refresh
         </Button>
       }
     >
-      <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <div className="space-y-6">
-          <Card className="border-none bg-muted/20 shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-bold">Filters</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-3">
-              <FilterField label="Status">
-                <Select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-                  {statusOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </Select>
-              </FilterField>
-              <FilterField label="Type">
-                <Select
-                  value={orderTypeFilter}
-                  onChange={(event) => setOrderTypeFilter(event.target.value)}
-                >
-                  {orderTypeOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </Select>
-              </FilterField>
-              <FilterField label="Table/Source">
-                <Select value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value)}>
-                  <option value="">All</option>
-                  {sourcesQuery.data?.map((source) => (
-                    <option key={source.id} value={source.id}>
-                      {source.name}
-                    </option>
-                  ))}
-                </Select>
-              </FilterField>
-            </CardContent>
-          </Card>
+      {/* Filters */}
+      <Card className="border-none bg-muted/20 shadow-sm">
+        <CardContent className="grid gap-3 p-4 sm:p-6 grid-cols-3">
+          <FilterField label="Status">
+            <Select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+              {statusOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </Select>
+          </FilterField>
+          <FilterField label="Type">
+            <Select
+              value={orderTypeFilter}
+              onChange={(event) => setOrderTypeFilter(event.target.value)}
+            >
+              {orderTypeOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </Select>
+          </FilterField>
+          <FilterField label="Table">
+            <Select value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value)}>
+              <option value="">All</option>
+              {sourcesQuery.data?.map((source) => (
+                <option key={source.id} value={source.id}>
+                  {source.name}
+                </option>
+              ))}
+            </Select>
+          </FilterField>
+        </CardContent>
+      </Card>
 
-          <Card className="border-none bg-white shadow-sm overflow-hidden">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-bold uppercase tracking-tight text-muted-foreground/60">Order Queue</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              {ordersQuery.isLoading ? (
-                <div className="p-6"><LoadingRows /></div>
-              ) : ordersQuery.isError ? (
-                <div className="p-6">
-                  <EmptyState
-                    title="Orders could not be loaded"
-                    description={getApiErrorMessage(
-                      ordersQuery.error,
-                      "The live queue is currently unavailable."
-                    )}
-                  />
+      <section className="grid gap-4 sm:gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+        {/* Order List */}
+        <Card className="border-none bg-white shadow-sm overflow-hidden">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base sm:text-lg font-bold">Order Queue</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {ordersQuery.isLoading ? (
+              <div className="p-4 sm:p-6"><LoadingRows /></div>
+            ) : ordersQuery.isError ? (
+              <div className="p-4 sm:p-6">
+                <EmptyState
+                  title="Could not load orders"
+                  description={getApiErrorMessage(
+                    ordersQuery.error,
+                    "Something went wrong loading orders."
+                  )}
+                />
+              </div>
+            ) : ordersQuery.data?.items?.length ? (
+              <>
+                {/* Mobile card list */}
+                <div className="space-y-2 p-3 sm:hidden">
+                  {ordersQuery.data.items.map((order) => (
+                    <button
+                      key={order.id}
+                      type="button"
+                      className={cn(
+                        "flex w-full items-center justify-between rounded-xl border p-3 text-left transition-colors",
+                        selectedOrderId === order.id
+                          ? "border-primary/30 bg-primary/5"
+                          : "border-border/50 bg-white hover:bg-muted/20"
+                      )}
+                      onClick={() => setSelectedOrderId(order.id)}
+                    >
+                      <div>
+                        <p className="text-sm font-bold">#{order.id.slice(0, 8)}</p>
+                        <p className="text-xs text-muted-foreground">{order.source.name} · {order.orderType.toUpperCase()}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-bold">{formatCurrency(order.total, currency)}</p>
+                        <StatusBadge status={order.status} />
+                      </div>
+                    </button>
+                  ))}
                 </div>
-              ) : ordersQuery.data?.items?.length ? (
-                <div className="overflow-x-auto">
+                {/* Desktop table */}
+                <div className="hidden overflow-x-auto sm:block">
                   <Table>
                     <TableHeader>
                       <TableRow className="hover:bg-transparent border-b">
                         <TableHead className="font-bold text-[10px] uppercase pl-6">ID</TableHead>
                         <TableHead className="font-bold text-[10px] uppercase">Table</TableHead>
                         <TableHead className="font-bold text-[10px] uppercase">Status</TableHead>
-                        <TableHead className="font-bold text-[10px] uppercase pr-6 text-right">Bill Amt</TableHead>
+                        <TableHead className="font-bold text-[10px] uppercase pr-6 text-right">Amount</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -219,48 +244,49 @@ export function OrdersManagement() {
                     </TableBody>
                   </Table>
                 </div>
-              ) : (
-                <div className="p-6">
-                  <EmptyState
-                    title="No orders found"
-                    description="Try changing the filters or wait for new orders."
-                  />
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+              </>
+            ) : (
+              <div className="p-4 sm:p-6">
+                <EmptyState
+                  title="No orders found"
+                  description="Try changing the filters or wait for new orders to come in."
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
+        {/* Order Details */}
         <Card className="border-none bg-muted/10 shadow-sm border-l border-border/50">
           <CardHeader className="pb-3 border-b border-border/30">
-            <CardTitle className="text-lg font-bold">Order Details</CardTitle>
+            <CardTitle className="text-base sm:text-lg font-bold">Order Details</CardTitle>
           </CardHeader>
-          <CardContent className="p-6 space-y-6">
+          <CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-6">
             {orderDetailQuery.isLoading ? (
               <LoadingRows />
             ) : orderDetailQuery.isError ? (
               <EmptyState
-                title="Details unavailable"
+                title="Could not load details"
                 description={getApiErrorMessage(
                   orderDetailQuery.error,
-                  "We could not load the selected order."
+                  "Something went wrong loading this order."
                 )}
               />
             ) : orderDetailQuery.data ? (
               <>
-                <div className="rounded-xl border border-border/50 bg-white p-5 shadow-sm">
-                  <div className="flex items-center justify-between border-b pb-4 mb-4">
+                <div className="rounded-xl border border-border/50 bg-white p-4 sm:p-5 shadow-sm">
+                  <div className="flex items-center justify-between border-b pb-3 sm:pb-4 mb-3 sm:mb-4">
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
-                        Order ID
+                        Order
                       </p>
-                      <p className="font-display text-2xl font-bold">#{orderDetailQuery.data.id.slice(0, 8)}</p>
+                      <p className="font-display text-xl sm:text-2xl font-bold">#{orderDetailQuery.data.id.slice(0, 8)}</p>
                     </div>
                     <StatusBadge status={orderDetailQuery.data.status} />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">Source</p>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">Table</p>
                       <p className="font-bold text-sm">{orderDetailQuery.data.source.name}</p>
                     </div>
                     <div>
@@ -272,12 +298,12 @@ export function OrdersManagement() {
 
                 <div className="space-y-3">
                   <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/80">
-                    ITEMS ORDERED
+                    Items
                   </p>
                   <div className="space-y-2">
                     {orderDetailQuery.data.items.map((item) => (
                       <div key={item.id} className="flex justify-between items-center rounded-lg bg-white/60 p-3 text-sm">
-                        <div className="flex gap-3 items-center">
+                        <div className="flex gap-2 sm:gap-3 items-center">
                           <span className="font-bold bg-muted px-2 py-0.5 rounded text-xs">{item.quantity}x</span>
                           <span className="font-medium text-foreground">{item.itemNameSnapshot}</span>
                         </div>
@@ -286,7 +312,7 @@ export function OrdersManagement() {
                     ))}
                     <div className="flex justify-between items-center border-t pt-3 mt-2 px-3">
                       <span className="font-bold text-muted-foreground">TOTAL</span>
-                      <span className="font-display text-xl font-bold text-foreground">
+                      <span className="font-display text-lg sm:text-xl font-bold text-foreground">
                         {formatCurrency(orderDetailQuery.data.total, currency)}
                       </span>
                     </div>
@@ -294,9 +320,9 @@ export function OrdersManagement() {
                 </div>
 
                 {orderDetailQuery.data.customerNote ? (
-                  <div className="rounded-lg bg-orange-50 p-4 border border-orange-100">
+                  <div className="rounded-lg bg-orange-50 p-3 sm:p-4 border border-orange-100">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-orange-800">
-                      NOTES FROM CUSTOMER
+                      Customer Note
                     </p>
                     <p className="mt-1 text-sm font-medium text-orange-900">
                       {orderDetailQuery.data.customerNote}
@@ -306,7 +332,7 @@ export function OrdersManagement() {
 
                 <div className="space-y-3 pt-2">
                   <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/80">
-                    UPDATE STATUS
+                    Change Status
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {availableNextStatuses.length ? (
@@ -326,26 +352,26 @@ export function OrdersManagement() {
                           }
                         >
                           <ArrowRightCircle className="mr-1.5 h-3.5 w-3.5" />
-                          Mark as {titleCase(status)}
+                          {titleCase(status)}
                         </Button>
                       ))
                     ) : (
                       <p className="text-xs font-medium text-muted-foreground italic">
-                        Order is completed or cancelled.
+                        This order is complete.
                       </p>
                     )}
                   </div>
                   {statusMutation.isError ? (
                     <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-xs text-destructive font-medium">
-                      {getApiErrorMessage(statusMutation.error, "Unable to update status.")}
+                      {getApiErrorMessage(statusMutation.error, "Could not update status. Please try again.")}
                     </div>
                   ) : null}
                 </div>
               </>
             ) : (
               <EmptyState
-                title="Select an order"
-                description="Click on an order from the list to see more details."
+                title="Tap an order"
+                description="Select an order from the list to see its details."
               />
             )}
           </CardContent>
@@ -357,18 +383,9 @@ export function OrdersManagement() {
 
 function FilterField({ label, children }) {
   return (
-    <div className="space-y-2">
-      <p className="text-sm font-semibold">{label}</p>
+    <div className="space-y-1 sm:space-y-2">
+      <p className="text-xs sm:text-sm font-semibold">{label}</p>
       {children}
-    </div>
-  );
-}
-
-function InfoCard({ label, value }) {
-  return (
-    <div className="rounded-3xl border border-border/70 bg-white/80 p-4">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
-      <p className="mt-2 font-semibold">{value}</p>
     </div>
   );
 }
@@ -377,7 +394,7 @@ function LoadingRows() {
   return (
     <div className="space-y-3">
       {Array.from({ length: 6 }).map((_, index) => (
-        <div key={index} className="h-16 animate-pulse rounded-2xl bg-muted" />
+        <div key={index} className="h-14 sm:h-16 animate-pulse rounded-2xl bg-muted" />
       ))}
     </div>
   );

@@ -113,8 +113,8 @@ export function CategoriesManagement() {
 
   return (
     <PageShell
-      title="Category Management"
-      description="Shape the dining catalogue with refined sections, clean sort order, and activation controls."
+      title="Categories"
+      description="Organize your menu into sections like Starters, Main Course, Drinks, etc."
       actions={
         <Button onClick={resetEditor}>
           <Plus className="mr-2 h-4 w-4" />
@@ -126,9 +126,9 @@ export function CategoriesManagement() {
         <Card className="bg-white/92">
           <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <CardTitle>Category List</CardTitle>
+              <CardTitle>Your Categories</CardTitle>
               <CardDescription>
-                {activeCount} active categories across the current menu structure.
+                {activeCount} active — these show up on your menu.
               </CardDescription>
             </div>
           </CardHeader>
@@ -212,8 +212,8 @@ export function CategoriesManagement() {
             ) : (
               <EmptyState
                 title="No categories yet"
-                description="Start by creating a polished category structure for starters, beverages, bakery, or main dishes."
-                actionLabel="Create first category"
+                description="Add your first category like 'Starters', 'Main Course', or 'Drinks'."
+                actionLabel="Add Category"
                 onAction={resetEditor}
               />
             )}
@@ -222,10 +222,9 @@ export function CategoriesManagement() {
 
         <Card className="bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(247,240,228,0.95))]">
           <CardHeader>
-            <CardTitle>{editingCategory ? "Edit Category" : "Create Category"}</CardTitle>
+            <CardTitle>{editingCategory ? "Edit Category" : "Add New Category"}</CardTitle>
             <CardDescription>
-              Keep naming clean and deliberate. This structure shapes both admin operations and the
-              public QR browsing experience.
+              Category names appear on your menu that customers see.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -262,9 +261,9 @@ export function CategoriesManagement() {
               </div>
               <div className="flex items-center justify-between rounded-3xl border border-border/80 bg-white/80 px-4 py-4">
                 <div>
-                  <p className="font-semibold">Visible to staff and customers</p>
+                  <p className="font-semibold">Show on menu</p>
                   <p className="text-sm text-muted-foreground">
-                    Inactive categories stay hidden from the active public menu.
+                    Turn off to hide this category from customers.
                   </p>
                 </div>
                 <Switch

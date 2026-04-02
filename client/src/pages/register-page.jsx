@@ -37,8 +37,8 @@ export function RegisterPage() {
   if (!auth.isBootstrapped || auth.status === "loading") {
     return (
       <FullPageSpinner
-        title="Preparing onboarding"
-        description="Checking for an existing ServeFlow session before showing registration."
+        title="Loading..."
+        description="Just a moment while we get things ready."
       />
     );
   }
@@ -135,19 +135,19 @@ export function RegisterPage() {
       <Card className="w-full max-w-2xl">
         <CardHeader className="space-y-3">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-            Owner Onboarding
+            Get Started
           </p>
-          <CardTitle>Create your ServeFlow workspace</CardTitle>
+          <CardTitle className="text-xl sm:text-2xl">Create your store</CardTitle>
           <CardDescription>
-            Launch a secure ordering and operations workspace for your food business with one owner
-            account, tenant-scoped settings, and default order sources from day one.
+            Set up your restaurant, cafe, or food business in just a few minutes.
+            You'll get a dashboard, menu builder, and QR ordering right away.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form className="space-y-5" onSubmit={handleSubmit}>
+          <form className="space-y-4 sm:space-y-5" onSubmit={handleSubmit}>
             <div className="grid gap-4 md:grid-cols-2">
               <Field
-                label="Business Name"
+                label="Store Name"
                 htmlFor="businessName"
                 error={fieldErrors.businessName}
               >
@@ -162,9 +162,9 @@ export function RegisterPage() {
               </Field>
 
               <Field
-                label="Business Slug"
+                label="Store ID"
                 htmlFor="businessSlug"
-                hint="Used in login and QR menu URLs."
+                hint="Used in your login and QR links"
                 error={fieldErrors.businessSlug}
               >
                 <Input
@@ -181,7 +181,7 @@ export function RegisterPage() {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <Field label="Owner Name" htmlFor="ownerName" error={fieldErrors.ownerName}>
+              <Field label="Your Name" htmlFor="ownerName" error={fieldErrors.ownerName}>
                 <Input
                   id="ownerName"
                   autoComplete="name"
@@ -192,7 +192,7 @@ export function RegisterPage() {
                 />
               </Field>
 
-              <Field label="Business Type" htmlFor="businessType" error={fieldErrors.businessType}>
+              <Field label="Type of Business" htmlFor="businessType" error={fieldErrors.businessType}>
                 <Select
                   id="businessType"
                   value={form.businessType}
@@ -272,9 +272,8 @@ export function RegisterPage() {
             </div>
 
             <div className="rounded-[28px] border border-border/70 bg-secondary/45 px-4 py-4 text-sm text-muted-foreground">
-              ServeFlow will create your business tenant, owner account, default business settings,
-              and starter order sources for Counter and Takeaway. No business ID is ever accepted
-              from the browser.
+              We'll create your store with a Counter and Takeaway source automatically.
+              You can add more tables and customize everything later.
             </div>
 
             {errorMessage ? (
@@ -285,7 +284,7 @@ export function RegisterPage() {
 
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button className="sm:flex-1" size="lg" type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Creating workspace..." : "Create Business Workspace"}
+                {isSubmitting ? "Setting up..." : "Create My Store"}
               </Button>
               <Button asChild className="sm:flex-1" size="lg" variant="outline">
                 <Link to="/login">I already have an account</Link>

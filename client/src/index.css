@@ -26,19 +26,23 @@
     --input: 220 13% 91%;
     --ring: 224 71.4% 4.1%;
     --radius: 0.75rem;
+    --bottom-nav-height: 4.25rem;
   }
 
   * {
     @apply border-border;
+    -webkit-tap-highlight-color: transparent;
   }
 
   html {
     @apply h-full scroll-smooth;
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
     @apply min-h-full bg-background text-foreground antialiased;
     font-family: 'Inter', sans-serif;
+    overscroll-behavior-y: none;
   }
 
   #root {
@@ -56,6 +60,17 @@
   a {
     @apply transition-colors;
   }
+
+  /* Bigger tap targets on mobile */
+  @media (max-width: 640px) {
+    button,
+    [role="button"],
+    select,
+    input,
+    textarea {
+      min-height: 44px;
+    }
+  }
 }
 
 @layer components {
@@ -65,5 +80,10 @@
 
   .page-edge {
     @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Bottom safe area padding for mobile bottom nav */
+  .has-bottom-nav {
+    padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px) + 0.75rem);
   }
 }

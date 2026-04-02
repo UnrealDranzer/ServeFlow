@@ -186,8 +186,8 @@ export function OrderSourcesManagement() {
 
   return (
     <PageShell
-      title="Order Sources"
-      description="Manage the elegant entry points for dine-in, counter, takeaway, and parcel orders."
+      title="Tables & QR Codes"
+      description="Set up your tables, counter, takeaway, and parcel points. Each one gets its own QR code."
       actions={
         <Button onClick={resetEditor}>
           <Plus className="mr-2 h-4 w-4" />
@@ -198,9 +198,9 @@ export function OrderSourcesManagement() {
       <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         <Card className="bg-white/92">
           <CardHeader>
-            <CardTitle>Source Registry</CardTitle>
+            <CardTitle>Your Tables & Sources</CardTitle>
             <CardDescription>
-              QR destinations and operational order channels for the current business.
+              Each source gets a unique QR code that customers can scan to order.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -300,9 +300,9 @@ export function OrderSourcesManagement() {
         <div className="space-y-6">
           <Card className="bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(247,240,228,0.95))]">
             <CardHeader>
-              <CardTitle>{editingSource ? "Edit Source" : "Create Source"}</CardTitle>
+              <CardTitle>{editingSource ? "Edit Source" : "Add New Source"}</CardTitle>
               <CardDescription>
-                Define a premium order entry point with a clear label, slug, and source type.
+                Give it a clear name like "Table 5" or "Takeaway". The QR code is created automatically.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -339,9 +339,9 @@ export function OrderSourcesManagement() {
                 </Field>
                 <div className="flex items-center justify-between rounded-3xl border border-border/80 bg-white/80 px-4 py-4">
                   <div>
-                    <p className="font-semibold">Source is active</p>
+                    <p className="font-semibold">Active</p>
                     <p className="text-sm text-muted-foreground">
-                      Inactive sources stay out of public ordering and manual selection flows.
+                      Turn off to stop taking orders from this source.
                     </p>
                   </div>
                   <Switch
@@ -372,9 +372,9 @@ export function OrderSourcesManagement() {
 
           <Card className="bg-white/92">
             <CardHeader>
-              <CardTitle>QR Preview</CardTitle>
+              <CardTitle>QR Code</CardTitle>
               <CardDescription>
-                Download or share the source QR destination used for premium table-side ordering.
+                Print this QR code and place it on the table. Customers scan it to order.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">

@@ -168,8 +168,8 @@ export function MenuItemsManagement() {
 
   return (
     <PageShell
-      title="Menu Items"
-      description="Curate a premium menu catalogue with precise pricing, availability controls, and public presentation logic."
+      title="Dishes"
+      description="Add, edit, and manage all the food and drinks you sell."
       actions={
         <Button onClick={resetEditor}>
           <Plus className="mr-2 h-4 w-4" />
@@ -182,9 +182,9 @@ export function MenuItemsManagement() {
           <Card className="bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(247,240,228,0.95))]">
             <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <CardTitle>Catalogue Filters</CardTitle>
+                <CardTitle>Filters</CardTitle>
                 <CardDescription>
-                  Narrow the list while keeping availability and category visibility clear.
+                  Search or filter to find dishes quickly.
                 </CardDescription>
               </div>
             </CardHeader>
@@ -227,9 +227,9 @@ export function MenuItemsManagement() {
 
           <Card className="bg-white/92">
             <CardHeader>
-              <CardTitle>Menu Inventory</CardTitle>
+              <CardTitle>All Dishes</CardTitle>
               <CardDescription>
-                Every item stays tenant-scoped, owner-managed, and safe against historical order drift.
+                Your full menu — tap any dish to edit or delete it.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -337,10 +337,9 @@ export function MenuItemsManagement() {
 
         <Card className="bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(247,240,228,0.95))]">
           <CardHeader>
-            <CardTitle>{editingMenuItem ? "Edit Menu Item" : "Create Menu Item"}</CardTitle>
+            <CardTitle>{editingMenuItem ? "Edit Dish" : "Add New Dish"}</CardTitle>
             <CardDescription>
-              Build an elevated menu presence with sharp pricing, intentional ordering, and optional
-              imagery.
+              Fill in the details below. The name and price will show to customers.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
@@ -350,10 +349,9 @@ export function MenuItemsManagement() {
                   <Sparkles className="h-5 w-5" />
                 </div>
                 <div className="space-y-1">
-                  <p className="font-semibold">Luxury menu cue</p>
+                  <p className="font-semibold">Tip</p>
                   <p className="text-sm text-muted-foreground">
-                    Short descriptions and clean image choices will make the public QR flow feel
-                    premium instead of cluttered.
+                    Keep descriptions short. A photo and a clear name work best for customers.
                   </p>
                 </div>
               </div>
@@ -460,7 +458,7 @@ export function MenuItemsManagement() {
               <div className="space-y-3 rounded-3xl border border-border/80 bg-white/80 p-4">
                 <ToggleRow
                   label="Available now"
-                  description="Hidden items stay out of the public QR menu and manual order builder."
+                  description="Turn off to hide this dish from customers and order screens."
                   checked={formState.isAvailable}
                   onCheckedChange={(checked) =>
                     setFormState((currentState) => ({
@@ -470,8 +468,8 @@ export function MenuItemsManagement() {
                   }
                 />
                 <ToggleRow
-                  label="Vegetarian badge"
-                  description="Show a clear veg marker in the public menu when this item qualifies."
+                  label="Veg badge"
+                  description="Show a green dot on the menu if this dish is vegetarian."
                   checked={formState.isVeg}
                   onCheckedChange={(checked) =>
                     setFormState((currentState) => ({
