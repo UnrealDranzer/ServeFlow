@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthLayout } from "@/components/layout/auth-layout";
 import { FullPageSpinner } from "@/components/full-page-spinner";
 import { Button } from "@/components/ui/button";
@@ -13,13 +13,25 @@ export function LoginPage() {
   const auth = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const prefilledBusinessSlug = searchParams.get("businessSlug") || "";
+  const prefilledEmail = searchParams.get("email") || "";
+  const wasJustRegistered = searchParams.get("registered") === "1";
   const [form, setForm] = useState({
-    businessSlug: "",
-    email: "",
+    businessSlug: prefilledBusinessSlug,
+    email: prefilledEmail,
     password: ""
   });
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    setForm((currentForm) => ({
+      ...currentForm,
+      businessSlug: prefilledBusinessSlug,
+      email: prefilledEmail
+    }));
+  }, [prefilledBusinessSlug, prefilledEmail]);
 
   if (!auth.isBootstrapped || auth.status === "loading") {
     return (
@@ -73,6 +85,12 @@ export function LoginPage() {
         </CardHeader>
         <CardContent>
           <form className="space-y-5" onSubmit={handleSubmit}>
+            {wasJustRegistered ? (
+              <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-sm text-emerald-700">
+                Your business workspace is ready. Sign in with the owner email and business slug we
+                just prepared for you.
+              </div>
+            ) : null}
             <div className="space-y-2">
               <Label htmlFor="businessSlug">Business slug</Label>
               <Input
@@ -116,6 +134,12 @@ export function LoginPage() {
             <Button className="w-full" size="lg" type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Signing in..." : "Sign in to ServeFlow"}
             </Button>
+            <div className="flex flex-col gap-3 rounded-[24px] border border-border/60 bg-secondary/45 px-4 py-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+              <p>New to ServeFlow? Create your business workspace first.</p>
+              <Button asChild variant="outline">
+                <Link to="/register">Register Business</Link>
+              </Button>
+            </div>
           </form>
         </CardContent>
       </Card>

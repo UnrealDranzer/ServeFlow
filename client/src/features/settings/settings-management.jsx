@@ -16,16 +16,8 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { getApiErrorMessage } from "@/lib/api-error";
+import { businessTypeOptions } from "@/lib/business-types";
 import { getSettingsRequest, updateSettingsRequest } from "@/features/settings/settings-api";
-
-const businessTypeOptions = [
-  { value: "restaurant", label: "Restaurant" },
-  { value: "cafe", label: "Cafe" },
-  { value: "tea_shop", label: "Tea Shop" },
-  { value: "bakery", label: "Bakery" },
-  { value: "fast_food", label: "Fast Food" },
-  { value: "other", label: "Other" }
-];
 
 const orderModeOptions = [
   { value: "both", label: "QR + Manual" },

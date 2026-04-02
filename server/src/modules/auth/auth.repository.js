@@ -29,8 +29,7 @@ export function findBusinessForRegistration(slug) {
 export function findExistingUserByEmail(email) {
   return prisma.user.findFirst({
     where: {
-      email,
-      isActive: true
+      email
     }
   });
 }

@@ -26,7 +26,7 @@ export function AuthLayout({ children }) {
             <MetricCard label="Pace" value="Shift Ready" />
           </div>
         </div>
-        <div className="flex items-center justify-center">{children}</div>
+        <div className="flex items-start justify-center py-2 lg:items-center">{children}</div>
       </div>
     </div>
   );

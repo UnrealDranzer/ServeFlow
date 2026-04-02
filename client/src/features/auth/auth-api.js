@@ -9,6 +9,11 @@ export async function loginRequest(credentials) {
   return unwrapResponse(response);
 }
 
+export async function registerRequest(payload) {
+  const response = await apiClient.post("/auth/register", payload);
+  return unwrapResponse(response);
+}
+
 export async function refreshSessionRequest() {
   const response = await apiClient.post("/auth/refresh");
   return unwrapResponse(response);
