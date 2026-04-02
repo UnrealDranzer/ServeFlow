@@ -5,7 +5,7 @@ import { ensureBusinessSettings } from "../settings/settings.repository.js";
 import { findActiveBusinessBySlug } from "./businesses.repository.js";
 import { toBusinessPublicDto } from "./businesses.dto.js";
 import { buildOrderDraft } from "../orders/order-builder.js";
-import { createOrderRecord } from "../orders/orders.repository.js";
+import { createOrderRecord, findOrderById } from "../orders/orders.repository.js";
 import { toPublicOrderPlacedDto } from "../orders/orders.dto.js";
 
 async function resolvePublicOrderContext(businessSlug, sourceSlug) {
@@ -115,30 +115,32 @@ export async function createPublicOrder(businessSlug, sourceSlug, input) {
       items: input.items
     });
 
-    return createOrderRecord(tx, {
-      business: { connect: { id: business.id } },
-      orderSource: { 
-        connect: { 
-          id_businessId: { 
-            id: source.id, 
-            businessId: business.id 
-          } 
-        } 
-      },
-      orderType: "QR",
-      status: "NEW",
-      subtotal: draft.subtotal,
-      taxAmount: draft.taxAmount,
-      discountAmount: draft.discountAmount,
-      total: draft.total,
-      customerNote: input.customerNote,
-      items: {
-        create: draft.orderItemsData.map(item => ({
-          ...item,
-          business: { connect: { id: business.id } }
-        }))
+    const order = await tx.order.create({
+      data: {
+        businessId: business.id,
+        orderSourceId: source.id,
+        orderType: "QR",
+        status: "NEW",
+        subtotal: draft.subtotal,
+        taxAmount: draft.taxAmount,
+        discountAmount: draft.discountAmount,
+        total: draft.total,
+        customerNote: input.customerNote,
+        placedByUserId: null,
       }
     });
+
+    if (draft.orderItemsData.length > 0) {
+      await tx.orderItem.createMany({
+        data: draft.orderItemsData.map((item) => ({
+          ...item,
+          orderId: order.id,
+          businessId: business.id,
+        })),
+      });
+    }
+
+    return findOrderById(business.id, order.id);
   });
 
   return toPublicOrderPlacedDto(order);

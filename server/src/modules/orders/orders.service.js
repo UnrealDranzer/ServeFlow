@@ -84,31 +84,32 @@ export async function createManualOrderForBusiness(businessId, userId, input) {
       items: input.items
     });
 
-    return createOrderRecord(tx, {
-      business: { connect: { id: businessId } },
-      orderSource: { 
-        connect: { 
-          id_businessId: { 
-            id: source.id, 
-            businessId 
-          } 
-        } 
-      },
-      orderType: "MANUAL",
-      status: "NEW",
-      subtotal: draft.subtotal,
-      taxAmount: draft.taxAmount,
-      discountAmount: draft.discountAmount,
-      total: draft.total,
-      customerNote: input.customerNote,
-      placedByUserId: userId,
-      items: {
-        create: draft.orderItemsData.map(item => ({
-          ...item,
-          business: { connect: { id: businessId } }
-        }))
+    const order = await tx.order.create({
+      data: {
+        businessId,
+        orderSourceId: source.id,
+        orderType: "MANUAL",
+        status: "NEW",
+        subtotal: draft.subtotal,
+        taxAmount: draft.taxAmount,
+        discountAmount: draft.discountAmount,
+        total: draft.total,
+        customerNote: input.customerNote,
+        placedByUserId: userId,
       }
     });
+
+    if (draft.orderItemsData.length > 0) {
+      await tx.orderItem.createMany({
+        data: draft.orderItemsData.map((item) => ({
+          ...item,
+          orderId: order.id,
+          businessId,
+        })),
+      });
+    }
+
+    return findOrderById(businessId, order.id);
   });
 
   return toOrderDetailDto(order);
