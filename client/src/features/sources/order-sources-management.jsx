@@ -195,7 +195,7 @@ export function OrderSourcesManagement() {
         </Button>
       }
     >
-      <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+      <section className="grid gap-4 sm:gap-6 lg:grid-cols-[1fr_350px]">
         <Card className="bg-white/92">
           <CardHeader>
             <CardTitle>Your Tables & Sources</CardTitle>
@@ -219,73 +219,130 @@ export function OrderSourcesManagement() {
                 )}
               />
             ) : sourcesQuery.data?.length ? (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Source</TableHead>
-                      <TableHead>Slug</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {sourcesQuery.data.map((source) => (
-                      <TableRow key={source.id}>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <p className="font-semibold">{source.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {sourceTypeMeta[source.sourceType]}
-                            </p>
-                          </div>
-                        </TableCell>
-                        <TableCell>{source.slug}</TableCell>
-                        <TableCell>
-                          <span
-                            className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                              source.isActive
-                                ? "bg-emerald-100 text-emerald-900"
-                                : "bg-stone-200 text-stone-700"
-                            }`}
-                          >
-                            {source.isActive ? "Active" : "Inactive"}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setSelectedPreviewId(source.id)}
-                            >
-                              <QrCode className="mr-2 h-4 w-4" />
-                              QR
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => startEditing(source)}
-                            >
-                              <Pencil className="mr-2 h-4 w-4" />
-                              Edit
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                              onClick={() => handleDelete(source)}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Delete
-                            </Button>
-                          </div>
-                        </TableCell>
+              <>
+                {/* Mobile view */}
+                <div className="grid gap-3 sm:hidden">
+                  {sourcesQuery.data.map((source) => (
+                    <div key={source.id} className="rounded-xl border bg-white p-4 shadow-sm">
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                          <p className="font-bold text-foreground">{source.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {sourceTypeMeta[source.sourceType]} · Slug: {source.slug}
+                          </p>
+                        </div>
+                        <span
+                          className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                            source.isActive
+                              ? "bg-emerald-100 text-emerald-900"
+                              : "bg-stone-200 text-stone-700"
+                          }`}
+                        >
+                          {source.isActive ? "Active" : "Inactive"}
+                        </span>
+                      </div>
+                      <div className="mt-4 flex gap-2">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="flex-1 whitespace-nowrap px-2"
+                          onClick={() => setSelectedPreviewId(source.id)}
+                        >
+                          <QrCode className="mr-1.5 h-4 w-4" />
+                          <span className="sr-only">QR</span> View QR
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="flex-1 whitespace-nowrap px-2"
+                          onClick={() => startEditing(source)}
+                        >
+                          <Pencil className="mr-1.5 h-4 w-4" />
+                          Edit
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="flex-1 whitespace-nowrap px-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          onClick={() => handleDelete(source)}
+                        >
+                          <Trash2 className="mx-auto h-4 w-4" />
+                          <span className="sr-only">Delete</span>
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Desktop view */}
+                <div className="hidden sm:block overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Source</TableHead>
+                        <TableHead>Slug</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                    </TableHeader>
+                    <TableBody>
+                      {sourcesQuery.data.map((source) => (
+                        <TableRow key={source.id}>
+                          <TableCell>
+                            <div className="space-y-1">
+                              <p className="font-semibold">{source.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {sourceTypeMeta[source.sourceType]}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell>{source.slug}</TableCell>
+                          <TableCell>
+                            <span
+                              className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+                                source.isActive
+                                  ? "bg-emerald-100 text-emerald-900"
+                                  : "bg-stone-200 text-stone-700"
+                              }`}
+                            >
+                              {source.isActive ? "Active" : "Inactive"}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedPreviewId(source.id)}
+                              >
+                                <QrCode className="mr-2 h-4 w-4" />
+                                QR
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => startEditing(source)}
+                              >
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                onClick={() => handleDelete(source)}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
             ) : (
               <EmptyState
                 title="No sources configured"
