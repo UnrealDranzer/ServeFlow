@@ -74,8 +74,8 @@ export function AdminNavigation({ mobile = false }) {
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/60 bg-white/95 backdrop-blur-lg lg:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
-        <div className="flex items-stretch justify-around">
-          {visibleItems.slice(0, 5).map((item) => {
+        <div className="flex items-stretch overflow-x-auto snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          {visibleItems.map((item) => {
             const Icon = item.icon;
 
             return (
@@ -84,15 +84,15 @@ export function AdminNavigation({ mobile = false }) {
                 to={item.to}
                 className={({ isActive }) =>
                   cn(
-                    "flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-semibold transition-colors",
+                    "flex shrink-0 w-[72px] flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-semibold transition-colors snap-start",
                     isActive
-                      ? "text-primary"
+                      ? "text-primary bg-primary/5"
                       : "text-muted-foreground"
                   )
                 }
               >
                 <Icon className="h-5 w-5" />
-                <span>{item.shortLabel}</span>
+                <span className="truncate w-full text-center px-1">{item.shortLabel}</span>
               </NavLink>
             );
           })}
