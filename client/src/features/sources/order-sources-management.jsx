@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import QRCode from "qrcode";
 import { Copy, Download, Pencil, Plus, QrCode, Trash2 } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import { EmptyState } from "@/components/empty-state";
 import { PageShell } from "@/components/layout/page-shell";
 import {
@@ -43,22 +44,58 @@ const initialForm = {
 
 export function OrderSourcesManagement() {
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [editingSource, setEditingSource] = useState(null);
   const [selectedPreviewId, setSelectedPreviewId] = useState("");
   const [qrPreviewUrl, setQrPreviewUrl] = useState("");
   const [formState, setFormState] = useState(initialForm);
   const [errorMessage, setErrorMessage] = useState("");
+  const editorRef = useRef(null);
+  const previewRef = useRef(null);
+  const searchParamsSnapshot = searchParams.toString();
+  const previewParam = searchParams.get("preview") || "";
+  const modeParam = searchParams.get("mode") || "";
 
   const sourcesQuery = useQuery({
     queryKey: ["order-sources"],
     queryFn: getOrderSourcesRequest
   });
 
-  useEffect(() => {
-    if (!selectedPreviewId && sourcesQuery.data?.length) {
-      setSelectedPreviewId(sourcesQuery.data[0].id);
+  function updateSearchParams(mutator) {
+    const nextSearchParams = new URLSearchParams(searchParamsSnapshot);
+    mutator(nextSearchParams);
+
+    if (nextSearchParams.toString() !== searchParamsSnapshot) {
+      setSearchParams(nextSearchParams, { replace: true });
     }
-  }, [selectedPreviewId, sourcesQuery.data]);
+  }
+
+  useEffect(() => {
+    if (
+      previewParam &&
+      sourcesQuery.data?.length &&
+      !sourcesQuery.data.some((source) => source.id === previewParam)
+    ) {
+      updateSearchParams((nextSearchParams) => {
+        nextSearchParams.delete("preview");
+      });
+      return;
+    }
+
+    if (previewParam && previewParam !== selectedPreviewId) {
+      setSelectedPreviewId(previewParam);
+      return;
+    }
+
+    const firstSourceId = sourcesQuery.data?.[0]?.id;
+
+    if (!previewParam && !selectedPreviewId && firstSourceId) {
+      setSelectedPreviewId(firstSourceId);
+      updateSearchParams((nextSearchParams) => {
+        nextSearchParams.set("preview", firstSourceId);
+      });
+    }
+  }, [previewParam, searchParamsSnapshot, selectedPreviewId, sourcesQuery.data]);
 
   const qrQuery = useQuery({
     queryKey: ["order-sources", "qr", selectedPreviewId],
@@ -103,8 +140,14 @@ export function OrderSourcesManagement() {
     },
     onSuccess: (source) => {
       queryClient.invalidateQueries({ queryKey: ["order-sources"] });
+      setEditingSource(null);
+      setFormState(initialForm);
+      setErrorMessage("");
       setSelectedPreviewId(source.id);
-      resetEditor();
+      updateSearchParams((nextSearchParams) => {
+        nextSearchParams.delete("mode");
+        nextSearchParams.set("preview", source.id);
+      });
     },
     onError: (error) => {
       setErrorMessage(getApiErrorMessage(error, "Unable to save order source."));
@@ -127,6 +170,9 @@ export function OrderSourcesManagement() {
     setEditingSource(null);
     setFormState(initialForm);
     setErrorMessage("");
+    updateSearchParams((nextSearchParams) => {
+      nextSearchParams.delete("mode");
+    });
   }
 
   function startEditing(source) {
@@ -139,6 +185,19 @@ export function OrderSourcesManagement() {
     });
     setSelectedPreviewId(source.id);
     setErrorMessage("");
+    updateSearchParams((nextSearchParams) => {
+      nextSearchParams.delete("mode");
+      nextSearchParams.set("preview", source.id);
+    });
+    window.requestAnimationFrame(() => {
+      editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
+  function openCreateEditor() {
+    updateSearchParams((nextSearchParams) => {
+      nextSearchParams.set("mode", "create");
+    });
   }
 
   function handleSubmit(event) {
@@ -166,6 +225,21 @@ export function OrderSourcesManagement() {
     deleteMutation.mutate(source.id);
   }
 
+  function selectPreview(sourceId, { scrollToPreview = true } = {}) {
+    if (sourceId !== selectedPreviewId) {
+      setSelectedPreviewId(sourceId);
+      updateSearchParams((nextSearchParams) => {
+        nextSearchParams.set("preview", sourceId);
+      });
+    }
+
+    if (scrollToPreview) {
+      window.requestAnimationFrame(() => {
+        previewRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+  }
+
   async function copyQrUrl() {
     if (!qrQuery.data?.publicPath) {
       return;
@@ -186,12 +260,25 @@ export function OrderSourcesManagement() {
     link.click();
   }
 
+  useEffect(() => {
+    if (modeParam !== "create") {
+      return;
+    }
+
+    setEditingSource(null);
+    setFormState(initialForm);
+    setErrorMessage("");
+    window.requestAnimationFrame(() => {
+      editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [modeParam]);
+
   return (
     <PageShell
       title="Tables & QR Codes"
       description="Set up your tables, counter, takeaway, and parcel points. Each one gets its own QR code."
       actions={
-        <Button onClick={resetEditor}>
+        <Button onClick={openCreateEditor}>
           <Plus className="mr-2 h-4 w-4" />
           New Source
         </Button>
@@ -248,7 +335,7 @@ export function OrderSourcesManagement() {
                           variant="secondary"
                           size="sm"
                           className="flex-1 whitespace-nowrap px-2"
-                          onClick={() => setSelectedPreviewId(source.id)}
+                          onClick={() => selectPreview(source.id)}
                         >
                           <QrCode className="mr-1.5 h-4 w-4" />
                           <span className="sr-only">QR</span> View QR
@@ -315,7 +402,7 @@ export function OrderSourcesManagement() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => setSelectedPreviewId(source.id)}
+                                onClick={() => selectPreview(source.id, { scrollToPreview: false })}
                               >
                                 <QrCode className="mr-2 h-4 w-4" />
                                 QR
@@ -350,13 +437,14 @@ export function OrderSourcesManagement() {
                 title="No sources configured"
                 description="Create your first table, counter, takeaway, or parcel source to begin receiving orders."
                 actionLabel="Create source"
-                onAction={resetEditor}
+                onAction={openCreateEditor}
               />
             )}
           </CardContent>
         </Card>
 
         <div className="space-y-6">
+          <div ref={editorRef}>
           <Card className="bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(247,240,228,0.95))]">
             <CardHeader>
               <CardTitle>{editingSource ? "Edit Source" : "Add New Source"}</CardTitle>
@@ -428,7 +516,9 @@ export function OrderSourcesManagement() {
               </form>
             </CardContent>
           </Card>
+          </div>
 
+          <div ref={previewRef}>
           <Card className="bg-white/92">
             <CardHeader>
               <CardTitle>QR Code</CardTitle>
@@ -482,6 +572,7 @@ export function OrderSourcesManagement() {
               )}
             </CardContent>
           </Card>
+          </div>
         </div>
       </section>
     </PageShell>

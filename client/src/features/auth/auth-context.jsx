@@ -3,14 +3,21 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   authSessionStore,
   clearAuthenticatedSession,
+  hydrateAuthSession,
   setAuthenticatedSession,
   setAuthLoadingState
 } from "@/store/auth-session-store";
 import {
+  getCurrentUserRequest,
   loginRequest,
   logoutRequest,
   refreshSessionRequest
 } from "@/features/auth/auth-api";
+import {
+  clearPersistedAuthSession,
+  persistAuthSession,
+  readPersistedAuthSession
+} from "@/features/auth/auth-persistence";
 import { registerAuthTransportHandlers } from "@/lib/http";
 
 const AuthContext = createContext(null);
@@ -21,17 +28,20 @@ export function AuthProvider({ children }) {
   async function refresh() {
     const payload = await refreshSessionRequest();
     setAuthenticatedSession(payload);
+    persistAuthSession(payload);
     return payload;
   }
 
   async function login(credentials) {
     const payload = await loginRequest(credentials);
     setAuthenticatedSession(payload);
+    persistAuthSession(payload);
     return payload;
   }
 
   function handleAuthFailure() {
     clearAuthenticatedSession();
+    clearPersistedAuthSession();
     queryClient.clear();
   }
 
@@ -53,8 +63,26 @@ export function AuthProvider({ children }) {
 
     async function bootstrapSession() {
       setAuthLoadingState();
+      const persistedSession = readPersistedAuthSession();
 
       try {
+        if (persistedSession?.accessToken) {
+          hydrateAuthSession(persistedSession);
+          try {
+            const payload = await getCurrentUserRequest();
+            setAuthenticatedSession(payload);
+            persistAuthSession({
+              ...persistedSession,
+              ...payload,
+              accessToken: authSessionStore.getState().accessToken || persistedSession.accessToken
+            });
+            return;
+          } catch {
+            await refresh();
+            return;
+          }
+        }
+
         await refresh();
       } catch {
         if (isActive) {

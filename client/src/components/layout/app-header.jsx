@@ -32,7 +32,7 @@ export function AppHeader() {
         </div>
       </div>
       <div className="flex items-center gap-2 sm:gap-3 lg:justify-end">
-        <div className="rounded-full bg-accent px-3 py-1.5 text-xs text-accent-foreground sm:px-4 sm:py-2 sm:text-sm">
+        <div className="rounded-full border border-accent/35 bg-accent/18 px-3 py-1.5 text-xs font-medium text-foreground sm:px-4 sm:py-2 sm:text-sm">
           {auth.user?.name || "Team member"}
         </div>
         <Button variant="outline" size="sm" onClick={auth.logout} className="h-9 px-3 text-xs sm:h-10 sm:px-4 sm:text-sm">

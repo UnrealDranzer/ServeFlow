@@ -91,8 +91,8 @@ export function PublicMenuExperience() {
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl space-y-5">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge className="bg-white/15 text-white">QR Dining</Badge>
-              <Badge className="bg-white/10 text-white">
+              <Badge className="border border-white/60 bg-white/88 text-foreground">QR Dining</Badge>
+              <Badge className="border border-white/60 bg-white/82 text-foreground">
                 {sourceTypeMeta[menu.source.sourceType] || titleCase(menu.source.sourceType)}
               </Badge>
               <Badge className={isAcceptingOrders ? "bg-emerald-100 text-emerald-900" : "bg-rose-100 text-rose-900"}>
@@ -100,16 +100,30 @@ export function PublicMenuExperience() {
               </Badge>
             </div>
 
-            <div className="space-y-3 text-white">
-              <p className="text-xs font-semibold uppercase tracking-[0.26em] text-white/70">
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.26em] text-foreground/70">
                 ServeFlow Guest Experience
               </p>
-              <h1 className="max-w-xl text-4xl text-white sm:text-5xl">
+              <h1 className="max-w-xl text-4xl text-foreground sm:text-5xl">
                 {menu.business.name}
               </h1>
-              <p className="max-w-2xl text-sm leading-7 text-white/78 sm:text-base">
+              <p className="max-w-2xl text-sm leading-7 text-foreground/78 sm:text-base">
                 Explore the live menu prepared for {menu.source.name}. Each order stays securely
                 scoped to this business and source.
+              </p>
+            </div>
+
+            <div className="rounded-[28px] border border-white/70 bg-white/84 px-4 py-4 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-foreground/60">
+                Order session
+              </p>
+              <p className="mt-2 text-lg font-semibold text-foreground">
+                {menu.activeOrder ? "You're adding to your current order" : "Start a new order"}
+              </p>
+              <p className="mt-2 text-sm leading-6 text-foreground/72">
+                {menu.activeOrder
+                  ? `Table ${menu.source.name} already has an active order in progress. New items will be added to order #${menu.activeOrder.orderId.slice(0, 8)} until it is completed.`
+                  : `This table does not have an active in-progress order, so the next checkout will begin a fresh order session.`}
               </p>
             </div>
 
@@ -124,16 +138,16 @@ export function PublicMenuExperience() {
             </div>
           </div>
 
-          <div className="w-full max-w-md rounded-[32px] border border-white/15 bg-white/10 p-5 text-white backdrop-blur">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/65">
+          <div className="w-full max-w-md rounded-[32px] border border-white/70 bg-white/78 p-5 text-foreground shadow-sm backdrop-blur">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-foreground/60">
               Curated for this order point
             </p>
             <p className="mt-3 font-display text-3xl">{menu.source.name}</p>
-            <p className="mt-2 text-sm leading-6 text-white/72">
+            <p className="mt-2 text-sm leading-6 text-foreground/72">
               Browse at your pace, review your cart carefully, and send the order directly to the
               service team.
             </p>
-            <div className="mt-5 rounded-[28px] border border-white/15 bg-black/10 px-4 py-4 text-sm text-white/78">
+            <div className="mt-5 rounded-[28px] border border-border/60 bg-white/70 px-4 py-4 text-sm text-foreground/72">
               {isAcceptingOrders
                 ? "Orders are currently open for this source."
                 : "This business has temporarily paused online ordering for this source."}
@@ -292,12 +306,12 @@ export function PublicMenuExperience() {
 
 function HeroStat({ icon: Icon, label, value }) {
   return (
-    <div className="rounded-[28px] border border-white/15 bg-white/10 px-4 py-4 backdrop-blur">
-      <div className="flex items-center gap-2 text-white/72">
+    <div className="rounded-[28px] border border-white/70 bg-white/82 px-4 py-4 shadow-sm backdrop-blur">
+      <div className="flex items-center gap-2 text-foreground/68">
         <Icon className="h-4 w-4" />
         <p className="text-xs font-semibold uppercase tracking-[0.2em]">{label}</p>
       </div>
-      <p className="mt-3 text-lg font-semibold text-white">{value}</p>
+      <p className="mt-3 text-lg font-semibold text-foreground">{value}</p>
     </div>
   );
 }

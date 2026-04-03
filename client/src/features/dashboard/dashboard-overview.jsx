@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Banknote, CircleDollarSign, ListTodo, WalletCards } from "lucide-react";
+import { CircleDollarSign, ListTodo, WalletCards } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { PageShell } from "@/components/layout/page-shell";
 import { EmptyState } from "@/components/empty-state";
 import { MetricCard } from "@/components/metric-card";
@@ -11,19 +13,30 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
+import { Select } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAuth } from "@/features/auth/use-auth";
-import { getDashboardSummaryRequest, getRecentOrdersRequest } from "@/features/dashboard/dashboard-api";
+import { getDashboardStatsRequest, getRecentOrdersRequest } from "@/features/dashboard/dashboard-api";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { formatCurrency, formatShortDateTime, titleCase } from "@/lib/format";
 
+const dashboardRangeOptions = [
+  { value: "today", label: "Today" },
+  { value: "yesterday", label: "Yesterday" },
+  { value: "week", label: "This Week" },
+  { value: "month", label: "This Month" },
+  { value: "all", label: "All Time" }
+];
+
 export function DashboardOverview() {
   const auth = useAuth();
+  const navigate = useNavigate();
+  const [range, setRange] = useState("today");
 
-  const summaryQuery = useQuery({
-    queryKey: ["dashboard", "summary"],
-    queryFn: getDashboardSummaryRequest,
+  const statsQuery = useQuery({
+    queryKey: ["dashboard", "stats", range],
+    queryFn: () => getDashboardStatsRequest(range),
     refetchInterval: 30_000
   });
 
@@ -34,25 +47,31 @@ export function DashboardOverview() {
   });
 
   const currency = auth.business?.currency || "INR";
+  const activeRangeLabel =
+    dashboardRangeOptions.find((option) => option.value === range)?.label || "Today";
+
+  function openOrder(orderId) {
+    navigate(`/app/orders?orderId=${orderId}`);
+  }
 
   return (
     <PageShell
-      title="Today's Overview"
-      description="Quick look at today's sales and recent orders."
+      title="Business Overview"
+      description="Track paid sales, active orders, and recent activity from one place."
     >
-      {summaryQuery.isError ? (
+      {statsQuery.isError ? (
         <EmptyState
           title="Could not load data"
-          description={getApiErrorMessage(summaryQuery.error, "Something went wrong loading your store data.")}
+          description={getApiErrorMessage(statsQuery.error, "Something went wrong loading your store data.")}
         />
       ) : null}
 
-      <section className="grid gap-4 sm:gap-6 grid-cols-2 xl:grid-cols-4">
-        {summaryQuery.isLoading ? (
-          Array.from({ length: 4 }).map((_, index) => (
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3">
+        {statsQuery.isLoading ? (
+          Array.from({ length: 3 }).map((_, index) => (
             <Card key={index} className="border-none shadow-sm">
               <CardContent className="p-4 sm:p-6">
-                <Skeleton className="h-5 w-28" />
+                <Skeleton className="h-5 w-32" />
                 <Skeleton className="mt-4 sm:mt-6 h-8 sm:h-10 w-28 sm:w-40" />
                 <Skeleton className="mt-3 sm:mt-4 h-4 w-24 sm:w-32" />
               </CardContent>
@@ -60,29 +79,56 @@ export function DashboardOverview() {
           ))
         ) : (
           <>
+            <Card className="border-none bg-white shadow-sm">
+              <CardContent className="space-y-5 p-4 sm:p-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/8 text-primary">
+                        <CircleDollarSign className="h-5 w-5" />
+                      </div>
+                      <p className="text-sm font-semibold text-foreground/80">Paid Sales</p>
+                    </div>
+                    <p className="font-display text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+                      {formatCurrency(statsQuery.data?.sales, currency)}
+                    </p>
+                  </div>
+                  <div className="w-full max-w-full rounded-[26px] border border-border/70 bg-[linear-gradient(180deg,rgba(248,247,244,0.96),rgba(255,255,255,0.98))] p-3 shadow-sm sm:w-[196px] sm:min-w-[196px]">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-foreground/58">
+                      Sales range
+                    </p>
+                    <p className="mt-1 text-sm font-semibold text-foreground/78">
+                      {activeRangeLabel}
+                    </p>
+                    <Select
+                      className="mt-3 h-11 w-full rounded-2xl border-border/70 bg-white text-sm font-semibold shadow-none"
+                      value={range}
+                      onChange={(event) => setRange(event.target.value)}
+                    >
+                      {dashboardRangeOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </Select>
+                  </div>
+                </div>
+                <p className="text-sm leading-6 text-muted-foreground">
+                  Paid revenue for {activeRangeLabel.toLowerCase()}.
+                </p>
+              </CardContent>
+            </Card>
             <MetricCard
-              label="Today's Sales"
-              value={formatCurrency(summaryQuery.data?.todaySales, currency)}
-              note="Total from paid orders"
-              icon={CircleDollarSign}
-            />
-            <MetricCard
-              label="Total Orders"
-              value={summaryQuery.data?.todayOrders ?? 0}
-              note="All orders received today"
+              label="Paid Orders"
+              value={statsQuery.data?.totalOrders ?? 0}
+              note={`Completed orders in ${activeRangeLabel.toLowerCase()}`}
               icon={WalletCards}
             />
             <MetricCard
               label="Active Now"
-              value={summaryQuery.data?.pendingOrders ?? 0}
+              value={statsQuery.data?.pendingOrders ?? 0}
               note="Being prepared or served"
               icon={ListTodo}
-            />
-            <MetricCard
-              label="Avg. Bill"
-              value={formatCurrency(summaryQuery.data?.averageOrderValue, currency)}
-              note="Average per order"
-              icon={Banknote}
             />
           </>
         )}
@@ -116,7 +162,12 @@ export function DashboardOverview() {
                 {/* Mobile card view */}
                 <div className="space-y-3 sm:hidden">
                   {recentOrdersQuery.data.map((order) => (
-                    <div key={order.id} className="rounded-xl border border-border/50 bg-white p-3 shadow-sm">
+                    <button
+                      key={order.id}
+                      type="button"
+                      className="w-full rounded-xl border border-border/50 bg-white p-3 text-left shadow-sm transition-colors hover:bg-muted/20"
+                      onClick={() => openOrder(order.id)}
+                    >
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm font-bold text-foreground">#{order.id.slice(0, 8)}</p>
@@ -133,7 +184,7 @@ export function DashboardOverview() {
                           .map((item) => `${item.itemNameSnapshot} x${item.quantity}`)
                           .join(", ")}
                       </p>
-                    </div>
+                    </button>
                   ))}
                 </div>
                 {/* Desktop table view */}
@@ -150,7 +201,11 @@ export function DashboardOverview() {
                     </TableHeader>
                     <TableBody>
                       {recentOrdersQuery.data.map((order) => (
-                        <TableRow key={order.id} className="cursor-pointer transition-colors hover:bg-muted/30">
+                        <TableRow
+                          key={order.id}
+                          className="cursor-pointer transition-colors hover:bg-muted/30"
+                          onClick={() => openOrder(order.id)}
+                        >
                           <TableCell>
                             <div className="space-y-0.5">
                               <p className="font-bold text-foreground">#{order.id.slice(0, 8)}</p>
@@ -177,7 +232,7 @@ export function DashboardOverview() {
                             {formatCurrency(order.total, currency)}
                           </TableCell>
                           <TableCell className="text-[11px] font-medium text-muted-foreground">
-                            {formatShortDateTime(order.placedAt, summaryQuery.data?.timezone)}
+                            {formatShortDateTime(order.placedAt, statsQuery.data?.timezone)}
                           </TableCell>
                         </TableRow>
                       ))}

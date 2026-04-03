@@ -35,6 +35,17 @@ export function setAuthLoadingState() {
   }));
 }
 
+export function hydrateAuthSession(payload) {
+  authSessionStore.setState({
+    status: "loading",
+    isBootstrapped: false,
+    accessToken: payload.accessToken || null,
+    user: payload.user,
+    business: payload.business,
+    permissions: payload.permissions
+  });
+}
+
 export function setAuthenticatedSession(payload) {
   authSessionStore.setState((currentState) => ({
     status: "authenticated",

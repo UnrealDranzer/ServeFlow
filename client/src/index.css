@@ -6,25 +6,25 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 224 71.4% 4.1%;
+    --background: 40 23% 96%;
+    --foreground: 220 32% 13%;
     --card: 0 0% 100%;
-    --card-foreground: 224 71.4% 4.1%;
+    --card-foreground: 220 32% 13%;
     --popover: 0 0% 100%;
-    --popover-foreground: 224 71.4% 4.1%;
-    --primary: 220.9 39.3% 11%;
+    --popover-foreground: 220 32% 13%;
+    --primary: 220 32% 13%;
     --primary-foreground: 210 20% 98%;
-    --secondary: 220 14.3% 95.9%;
-    --secondary-foreground: 220.9 39.3% 11%;
-    --muted: 220 14.3% 95.9%;
-    --muted-foreground: 220 8.9% 46.1%;
-    --accent: 220 14.3% 95.9%;
-    --accent-foreground: 220.9 39.3% 11%;
-    --destructive: 0 84.2% 60.2%;
+    --secondary: 36 27% 91%;
+    --secondary-foreground: 220 27% 20%;
+    --muted: 36 24% 92%;
+    --muted-foreground: 218 15% 38%;
+    --accent: 39 46% 57%;
+    --accent-foreground: 34 36% 18%;
+    --destructive: 0 72% 57%;
     --destructive-foreground: 210 20% 98%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 224 71.4% 4.1%;
+    --border: 36 17% 84%;
+    --input: 36 17% 84%;
+    --ring: 220 32% 13%;
     --radius: 0.75rem;
     --bottom-nav-height: 4.25rem;
   }
@@ -53,7 +53,7 @@
   h2,
   h3,
   h4 {
-    @apply font-display tracking-tight text-foreground font-bold;
+    @apply font-display font-semibold tracking-tight text-foreground;
     font-family: 'Outfit', sans-serif;
   }
 
@@ -75,7 +75,7 @@
 
 @layer components {
   .surface-panel {
-    @apply rounded-2xl border border-border/50 bg-card shadow-sm;
+    @apply rounded-[28px] border border-border/70 bg-card shadow-[0_12px_34px_rgba(31,24,16,0.06)];
   }
 
   .page-edge {

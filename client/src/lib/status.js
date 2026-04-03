@@ -21,7 +21,7 @@ export const orderStatusMeta = {
   },
   paid: {
     label: "Paid",
-    classes: "bg-secondary/15 text-secondary border-secondary/20"
+    classes: "bg-stone-200 text-stone-900 border-stone-300"
   },
   cancelled: {
     label: "Cancelled",

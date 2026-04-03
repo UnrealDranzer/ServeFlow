@@ -55,6 +55,21 @@ export function findOrderById(businessId, orderId, tx = prisma) {
   });
 }
 
+export function findLatestActiveQrOrderForSource(businessId, sourceId, tx = prisma) {
+  return tx.order.findFirst({
+    where: {
+      businessId,
+      orderSourceId: sourceId,
+      orderType: "QR",
+      status: {
+        in: ["NEW", "ACCEPTED", "PREPARING"]
+      }
+    },
+    include: orderInclude,
+    orderBy: [{ placedAt: "desc" }, { createdAt: "desc" }]
+  });
+}
+
 export function createOrderRecord(tx, data) {
   return tx.order.create({
     data,
@@ -178,6 +193,43 @@ export function aggregateTodaySales(businessId, start, end) {
     },
     _sum: {
       total: true
+    }
+  });
+}
+
+export function aggregatePaidSalesForRange(businessId, start, end) {
+  return prisma.order.aggregate({
+    where: {
+      businessId,
+      status: "PAID",
+      ...((start || end)
+        ? {
+            createdAt: {
+              ...(start ? { gte: start } : {}),
+              ...(end ? { lt: end } : {})
+            }
+          }
+        : {})
+    },
+    _sum: {
+      total: true
+    }
+  });
+}
+
+export function countPaidOrdersForRange(businessId, start, end) {
+  return prisma.order.count({
+    where: {
+      businessId,
+      status: "PAID",
+      ...((start || end)
+        ? {
+            createdAt: {
+              ...(start ? { gte: start } : {}),
+              ...(end ? { lt: end } : {})
+            }
+          }
+        : {})
     }
   });
 }

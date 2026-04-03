@@ -1,6 +1,7 @@
-import { useDeferredValue, useState } from "react";
+import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Camera, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import { EmptyState } from "@/components/empty-state";
 import { PageShell } from "@/components/layout/page-shell";
 import {
@@ -43,6 +44,7 @@ const initialForm = {
 export function MenuItemsManagement() {
   const auth = useAuth();
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [editingMenuItem, setEditingMenuItem] = useState(null);
   const [formState, setFormState] = useState(initialForm);
   const [errorMessage, setErrorMessage] = useState("");
@@ -50,6 +52,7 @@ export function MenuItemsManagement() {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [availableOnly, setAvailableOnly] = useState(false);
   const deferredSearch = useDeferredValue(search);
+  const editorRef = useRef(null);
 
   const categoriesQuery = useQuery({
     queryKey: ["categories", "active"],
@@ -120,6 +123,9 @@ export function MenuItemsManagement() {
       ...initialForm,
       categoryId: categoriesQuery.data?.[0]?.id || ""
     });
+    const nextSearchParams = new URLSearchParams(searchParams);
+    nextSearchParams.delete("mode");
+    setSearchParams(nextSearchParams, { replace: true });
   }
 
   function startEditing(menuItem) {
@@ -135,6 +141,18 @@ export function MenuItemsManagement() {
       isVeg: menuItem.isVeg,
       sortOrder: menuItem.sortOrder
     });
+    const nextSearchParams = new URLSearchParams(searchParams);
+    nextSearchParams.delete("mode");
+    setSearchParams(nextSearchParams, { replace: true });
+    window.requestAnimationFrame(() => {
+      editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
+  function openCreateEditor() {
+    const nextSearchParams = new URLSearchParams(searchParams);
+    nextSearchParams.set("mode", "create");
+    setSearchParams(nextSearchParams, { replace: true });
   }
 
   function handleSubmit(event) {
@@ -213,12 +231,28 @@ export function MenuItemsManagement() {
     event.target.value = "";
   };
 
+  useEffect(() => {
+    if (searchParams.get("mode") !== "create") {
+      return;
+    }
+
+    setEditingMenuItem(null);
+    setErrorMessage("");
+    setFormState({
+      ...initialForm,
+      categoryId: categoriesQuery.data?.[0]?.id || ""
+    });
+    window.requestAnimationFrame(() => {
+      editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [categoriesQuery.data, searchParams]);
+
   return (
     <PageShell
       title="Dishes"
       description="Add, edit, and manage all the food and drinks you sell."
       actions={
-        <Button onClick={resetEditor}>
+        <Button onClick={openCreateEditor}>
           <Plus className="mr-2 h-4 w-4" />
           New Item
         </Button>
@@ -436,13 +470,14 @@ export function MenuItemsManagement() {
                   title="No menu items match this view"
                   description="Create the first item or relax the filters to see more of the current menu."
                   actionLabel="Create menu item"
-                  onAction={resetEditor}
+                  onAction={openCreateEditor}
                 />
               )}
             </CardContent>
           </Card>
         </div>
 
+        <div ref={editorRef}>
         <Card className="bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(247,240,228,0.95))]">
           <CardHeader>
             <CardTitle>{editingMenuItem ? "Edit Dish" : "Add New Dish"}</CardTitle>
@@ -642,6 +677,7 @@ export function MenuItemsManagement() {
             </form>
           </CardContent>
         </Card>
+        </div>
       </section>
     </PageShell>
   );

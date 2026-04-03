@@ -1,4 +1,4 @@
-import { useDeferredValue, useState } from "react";
+import { useDeferredValue, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Minus, Plus, ReceiptText, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -7,7 +7,6 @@ import { PageShell } from "@/components/layout/page-shell";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
@@ -33,6 +32,7 @@ export function ManualOrderBuilder() {
   const [itemNotes, setItemNotes] = useState({});
   const [selectedItems, setSelectedItems] = useState([]);
   const deferredSearch = useDeferredValue(search);
+  const summaryRef = useRef(null);
 
   const sourcesQuery = useQuery({
     queryKey: ["order-sources"],
@@ -100,6 +100,13 @@ export function ManualOrderBuilder() {
         quantity: item.quantity,
         itemNote: itemNotes[item.id]?.trim() || null
       }))
+    });
+  }
+
+  function scrollToSummary() {
+    summaryRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
     });
   }
 
@@ -199,7 +206,8 @@ export function ManualOrderBuilder() {
           </Card>
         </div>
 
-        <Card className="border-none bg-muted/10 shadow-sm border-l border-border/30 h-fit sticky top-6">
+        <div ref={summaryRef}>
+        <Card className="h-fit border-none border-border/30 bg-muted/10 shadow-sm xl:sticky xl:top-6 xl:border-l">
           <CardHeader className="pb-3 border-b border-border/30">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -303,7 +311,39 @@ export function ManualOrderBuilder() {
             </Button>
           </CardContent>
         </Card>
+        </div>
       </section>
+
+      {(selectedItems.length || createOrderMutation.isPending) ? (
+        <div
+          className="fixed inset-x-4 z-30 rounded-[24px] border border-border/80 bg-white/96 p-3 shadow-[0_18px_38px_rgba(17,24,39,0.14)] backdrop-blur sm:hidden"
+          style={{ bottom: "calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px) + 0.75rem)" }}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/65">
+                Current order
+              </p>
+              <p className="truncate text-sm font-semibold text-foreground">
+                {selectedItems.length} item{selectedItems.length === 1 ? "" : "s"} selected
+              </p>
+            </div>
+            <p className="text-sm font-bold text-foreground">{formatCurrency(total, currency)}</p>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <Button size="sm" variant="secondary" onClick={scrollToSummary}>
+              Review Order
+            </Button>
+            <Button
+              size="sm"
+              disabled={!sourceId || !selectedItems.length || createOrderMutation.isPending}
+              onClick={submitOrder}
+            >
+              {createOrderMutation.isPending ? "Sending..." : "Send Order"}
+            </Button>
+          </div>
+        </div>
+      ) : null}
     </PageShell>
   );
 }

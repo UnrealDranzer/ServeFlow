@@ -1,11 +1,17 @@
 import { prisma } from "../../db/prisma.js";
 import { ApiError } from "../../utils/api-error.js";
-import { fromPrismaOrderMode, fromPrismaSourceType } from "../../utils/enums.js";
+import { fromPrismaOrderMode, fromPrismaOrderStatus, fromPrismaSourceType } from "../../utils/enums.js";
+import { moneyToString, toDecimal } from "../../utils/money.js";
 import { ensureBusinessSettings } from "../settings/settings.repository.js";
 import { findActiveBusinessBySlug } from "./businesses.repository.js";
 import { toBusinessPublicDto } from "./businesses.dto.js";
 import { buildOrderDraft } from "../orders/order-builder.js";
-import { createOrderRecord, findOrderById } from "../orders/orders.repository.js";
+import {
+  deleteOrderItemsByOrderId,
+  findLatestActiveQrOrderForSource,
+  findOrderById,
+  updateOrderTotals
+} from "../orders/orders.repository.js";
 import { toPublicOrderPlacedDto } from "../orders/orders.dto.js";
 
 async function resolvePublicOrderContext(businessSlug, sourceSlug) {
@@ -55,8 +61,87 @@ function toPublicMenuItemDto(menuItem, settings) {
   };
 }
 
+function normalizeCustomerNote(note) {
+  return note?.trim() || null;
+}
+
+function mergeCustomerNotes(existingNote, incomingNote) {
+  const currentNote = normalizeCustomerNote(existingNote);
+  const nextNote = normalizeCustomerNote(incomingNote);
+
+  if (!nextNote) {
+    return currentNote;
+  }
+
+  if (!currentNote) {
+    return nextNote;
+  }
+
+  if (currentNote.toLowerCase() === nextNote.toLowerCase()) {
+    return currentNote;
+  }
+
+  return `${currentNote}\n${nextNote}`;
+}
+
+function buildMergeKey(item) {
+  return [
+    item.menuItemId,
+    item.itemNameSnapshot,
+    toDecimal(item.itemPriceSnapshot).toFixed(2),
+    item.itemNote || ""
+  ].join("::");
+}
+
+function mergeOrderItems(existingOrder, incomingOrderItemsData) {
+  const mergedItems = [];
+  const mergedItemsByKey = new Map();
+
+  function upsertLineItem(item) {
+    const normalizedItem = {
+      menuItemId: item.menuItemId,
+      itemNameSnapshot: item.itemNameSnapshot,
+      itemPriceSnapshot: toDecimal(item.itemPriceSnapshot),
+      quantity: item.quantity,
+      itemNote: item.itemNote || null,
+      lineTotal: toDecimal(item.itemPriceSnapshot).mul(item.quantity)
+    };
+    const key = buildMergeKey(normalizedItem);
+    const existingItem = mergedItemsByKey.get(key);
+
+    if (!existingItem) {
+      mergedItemsByKey.set(key, normalizedItem);
+      mergedItems.push(normalizedItem);
+      return;
+    }
+
+    existingItem.quantity += normalizedItem.quantity;
+    existingItem.lineTotal = existingItem.itemPriceSnapshot.mul(existingItem.quantity);
+  }
+
+  existingOrder.items.forEach(upsertLineItem);
+  incomingOrderItemsData.forEach(upsertLineItem);
+
+  return mergedItems;
+}
+
+function toPublicActiveOrderDto(order) {
+  if (!order) {
+    return null;
+  }
+
+  return {
+    orderId: order.id,
+    status: fromPrismaOrderStatus(order.status),
+    placedAt: order.placedAt.toISOString(),
+    total: moneyToString(order.total),
+    itemCount: order.items.reduce((sum, item) => sum + item.quantity, 0)
+  };
+}
+
 export async function getPublicMenu(businessSlug, sourceSlug) {
   const { business, settings, source } = await resolvePublicOrderContext(businessSlug, sourceSlug);
+  const activeOrder = await findLatestActiveQrOrderForSource(business.id, source.id);
 
   const categories = await prisma.category.findMany({
     where: {
@@ -92,6 +177,7 @@ export async function getPublicMenu(businessSlug, sourceSlug) {
       showItemDescription: settings.showItemDescription,
       showVegBadge: settings.showVegBadge
     },
+    activeOrder: toPublicActiveOrderDto(activeOrder),
     categories: categories.map((category) => ({
       id: category.id,
       name: category.name,
@@ -108,12 +194,48 @@ export async function createPublicOrder(businessSlug, sourceSlug, input) {
     throw ApiError.forbidden("This business is not accepting orders right now.");
   }
 
-  const order = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
+    const activeOrder = await findLatestActiveQrOrderForSource(business.id, source.id, tx);
     const draft = await buildOrderDraft({
       tx,
       businessId: business.id,
       items: input.items
     });
+
+    if (activeOrder) {
+      const mergedOrderItemsData = mergeOrderItems(activeOrder, draft.orderItemsData);
+      const subtotal = mergedOrderItemsData.reduce(
+        (sum, item) => sum.add(item.lineTotal),
+        toDecimal(0)
+      );
+      const taxAmount = toDecimal(activeOrder.taxAmount || 0);
+      const discountAmount = toDecimal(activeOrder.discountAmount || 0);
+
+      await deleteOrderItemsByOrderId(tx, business.id, activeOrder.id);
+
+      if (mergedOrderItemsData.length > 0) {
+        await tx.orderItem.createMany({
+          data: mergedOrderItemsData.map((item) => ({
+            ...item,
+            orderId: activeOrder.id,
+            businessId: business.id
+          }))
+        });
+      }
+
+      const updatedOrder = await updateOrderTotals(tx, activeOrder.id, {
+        subtotal,
+        taxAmount,
+        discountAmount,
+        total: subtotal.add(taxAmount).sub(discountAmount),
+        customerNote: mergeCustomerNotes(activeOrder.customerNote, input.customerNote)
+      });
+
+      return {
+        order: updatedOrder,
+        action: "updated"
+      };
+    }
 
     const order = await tx.order.create({
       data: {
@@ -140,8 +262,11 @@ export async function createPublicOrder(businessSlug, sourceSlug, input) {
       });
     }
 
-    return findOrderById(business.id, order.id, tx);
+    return {
+      order: await findOrderById(business.id, order.id, tx),
+      action: "created"
+    };
   });
 
-  return toPublicOrderPlacedDto(order);
+  return toPublicOrderPlacedDto(result.order, { action: result.action });
 }

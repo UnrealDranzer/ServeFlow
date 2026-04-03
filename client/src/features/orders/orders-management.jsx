@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowRightCircle, Pencil, Printer, RefreshCcw } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import { EmptyState } from "@/components/empty-state";
 import { PageShell } from "@/components/layout/page-shell";
 import { StatusBadge } from "@/components/status-badge";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
@@ -16,7 +16,6 @@ import { Select } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { formatCurrency, formatDateTime, titleCase } from "@/lib/format";
-import { sourceTypeMeta } from "@/lib/status";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/features/auth/use-auth";
 import { getOrderSourcesRequest } from "@/features/sources/sources-api";
@@ -60,11 +59,15 @@ const editableStatuses = ["new", "accepted", "preparing"];
 export function OrdersManagement() {
   const auth = useAuth();
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [statusFilter, setStatusFilter] = useState("");
   const [orderTypeFilter, setOrderTypeFilter] = useState("");
   const [sourceFilter, setSourceFilter] = useState("");
   const [selectedOrderId, setSelectedOrderId] = useState("");
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const detailsRef = useRef(null);
+  const searchParamsSnapshot = searchParams.toString();
+  const routeOrderId = searchParams.get("orderId") || "";
 
   const sourcesQuery = useQuery({
     queryKey: ["order-sources"],
@@ -92,10 +95,24 @@ export function OrdersManagement() {
   });
 
   useEffect(() => {
-    if (!selectedOrderId && ordersQuery.data?.items?.length) {
-      setSelectedOrderId(ordersQuery.data.items[0].id);
+    if (routeOrderId && routeOrderId !== selectedOrderId) {
+      setSelectedOrderId(routeOrderId);
+      return;
     }
-  }, [selectedOrderId, ordersQuery.data]);
+
+    const firstOrderId = ordersQuery.data?.items?.[0]?.id;
+
+    if (!routeOrderId && !selectedOrderId && firstOrderId) {
+      setSelectedOrderId(firstOrderId);
+
+      const nextSearchParams = new URLSearchParams(searchParamsSnapshot);
+      nextSearchParams.set("orderId", firstOrderId);
+
+      if (nextSearchParams.toString() !== searchParamsSnapshot) {
+        setSearchParams(nextSearchParams, { replace: true });
+      }
+    }
+  }, [ordersQuery.data?.items, routeOrderId, searchParamsSnapshot, selectedOrderId, setSearchParams]);
 
   const orderDetailQuery = useQuery({
     queryKey: ["orders", "detail", selectedOrderId],
@@ -118,6 +135,41 @@ export function OrdersManagement() {
   const availableNextStatuses = nextStatusesMap[orderDetailQuery.data?.status] || [];
   const canEdit = editableStatuses.includes(orderDetailQuery.data?.status);
 
+  function handleSelectOrder(orderId, { scrollToDetails = true } = {}) {
+    if (orderId !== selectedOrderId) {
+      setSelectedOrderId(orderId);
+
+      const nextSearchParams = new URLSearchParams(searchParamsSnapshot);
+      nextSearchParams.set("orderId", orderId);
+
+      if (nextSearchParams.toString() !== searchParamsSnapshot) {
+        setSearchParams(nextSearchParams, { replace: true });
+      }
+    }
+
+    if (scrollToDetails && typeof window !== "undefined" && window.innerWidth < 640) {
+      window.requestAnimationFrame(() => {
+        detailsRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+      });
+    }
+  }
+
+  function handlePrintBill() {
+    if (!orderDetailQuery.data) {
+      return;
+    }
+
+    printBill({
+      order: orderDetailQuery.data,
+      businessName,
+      currency,
+      timezone
+    });
+  }
+
   return (
     <PageShell
       title="Orders"
@@ -131,7 +183,7 @@ export function OrdersManagement() {
     >
       {/* Filters */}
       <Card className="border-none bg-muted/20 shadow-sm">
-        <CardContent className="grid gap-3 p-4 sm:p-6 grid-cols-3">
+        <CardContent className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-3 sm:p-6">
           <FilterField label="Status">
             <Select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
               {statusOptions.map((option) => (
@@ -196,10 +248,10 @@ export function OrdersManagement() {
                       className={cn(
                         "flex w-full items-center justify-between rounded-xl border p-3 text-left transition-colors",
                         selectedOrderId === order.id
-                          ? "border-primary/30 bg-primary/5"
+                          ? "border-primary/30 bg-primary/8 shadow-sm"
                           : "border-border/50 bg-white hover:bg-muted/20"
                       )}
-                      onClick={() => setSelectedOrderId(order.id)}
+                      onClick={() => handleSelectOrder(order.id)}
                     >
                       <div>
                         <p className="text-sm font-bold">#{order.id.slice(0, 8)}</p>
@@ -229,9 +281,9 @@ export function OrdersManagement() {
                           key={order.id}
                           className={cn(
                             "cursor-pointer transition-colors border-b last:border-0",
-                            selectedOrderId === order.id ? "bg-primary/5" : "hover:bg-muted/30"
+                            selectedOrderId === order.id ? "bg-primary/8" : "hover:bg-muted/30"
                           )}
-                          onClick={() => setSelectedOrderId(order.id)}
+                          onClick={() => handleSelectOrder(order.id, { scrollToDetails: false })}
                         >
                           <TableCell className="pl-6 py-4">
                             <p className="font-bold text-foreground">#{order.id.slice(0, 8)}</p>
@@ -264,12 +316,13 @@ export function OrdersManagement() {
         </Card>
 
         {/* Order Details */}
-        <Card className="border-none bg-muted/10 shadow-sm border-l border-border/50">
+        <div ref={detailsRef}>
+        <Card className="border-none bg-muted/10 shadow-sm lg:border-l lg:border-border/50">
           <CardHeader className="pb-3 border-b border-border/30">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-3">
               <CardTitle className="text-base sm:text-lg font-bold">Order Details</CardTitle>
               {orderDetailQuery.data ? (
-                <div className="flex gap-2">
+                <div className="hidden gap-2 sm:flex">
                   {canEdit ? (
                     <Button
                       variant="secondary"
@@ -285,14 +338,7 @@ export function OrdersManagement() {
                     variant="secondary"
                     size="sm"
                     className="font-bold text-xs"
-                    onClick={() =>
-                      printBill({
-                        order: orderDetailQuery.data,
-                        businessName,
-                        currency,
-                        timezone
-                      })
-                    }
+                    onClick={handlePrintBill}
                   >
                     <Printer className="mr-1.5 h-3.5 w-3.5" />
                     Print Bill
@@ -317,7 +363,7 @@ export function OrdersManagement() {
                 <div className="rounded-xl border border-border/50 bg-white p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between border-b pb-3 sm:pb-4 mb-3 sm:mb-4">
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-foreground/65">
                         Order
                       </p>
                       <p className="font-display text-xl sm:text-2xl font-bold">#{orderDetailQuery.data.id.slice(0, 8)}</p>
@@ -326,11 +372,11 @@ export function OrdersManagement() {
                   </div>
                   <div className="grid grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">Table</p>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-foreground/65">Table</p>
                       <p className="font-bold text-sm">{orderDetailQuery.data.source.name}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">Time</p>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-foreground/65">Time</p>
                       <p className="font-bold text-sm">{formatDateTime(orderDetailQuery.data.placedAt, timezone)}</p>
                     </div>
                   </div>
@@ -416,6 +462,7 @@ export function OrdersManagement() {
             )}
           </CardContent>
         </Card>
+        </div>
       </section>
 
       {isEditOpen && orderDetailQuery.data ? (
@@ -426,6 +473,39 @@ export function OrdersManagement() {
             queryClient.invalidateQueries({ queryKey: ["orders"] });
           }}
         />
+      ) : null}
+
+      {orderDetailQuery.data ? (
+        <div
+          className="fixed inset-x-4 z-30 rounded-[24px] border border-border/80 bg-white/96 p-3 shadow-[0_18px_38px_rgba(17,24,39,0.14)] backdrop-blur sm:hidden"
+          style={{ bottom: "calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px) + 0.75rem)" }}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/65">
+                Selected order
+              </p>
+              <p className="truncate text-sm font-semibold text-foreground">
+                #{orderDetailQuery.data.id.slice(0, 8)} - {orderDetailQuery.data.source.name}
+              </p>
+            </div>
+            <p className="text-sm font-bold text-foreground">
+              {formatCurrency(orderDetailQuery.data.total, currency)}
+            </p>
+          </div>
+          <div className={cn("mt-3 grid gap-2", canEdit ? "grid-cols-2" : "grid-cols-1")}>
+            {canEdit ? (
+              <Button size="sm" variant="secondary" onClick={() => setIsEditOpen(true)}>
+                <Pencil className="mr-2 h-4 w-4" />
+                Edit Items
+              </Button>
+            ) : null}
+            <Button size="sm" onClick={handlePrintBill}>
+              <Printer className="mr-2 h-4 w-4" />
+              Print Bill
+            </Button>
+          </div>
+        </div>
       ) : null}
     </PageShell>
   );

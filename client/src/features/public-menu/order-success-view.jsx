@@ -58,31 +58,36 @@ export function OrderSuccessView() {
 
   const currency = lastOrder.currency || menuQuery.data?.business.currency || "INR";
   const sourceName = lastOrder.source?.name || menuQuery.data?.source.name || "this source";
+  const orderAction = lastOrder.action || "created";
 
   return (
     <div className="space-y-6">
       <section className="overflow-hidden rounded-[36px] border border-border/80 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.98),rgba(247,240,228,0.92)_54%,rgba(61,46,26,0.96)_100%)] p-6 shadow-glow sm:p-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="space-y-4 text-white">
+          <div className="space-y-4">
             <Badge className="bg-emerald-100 text-emerald-900">Order placed</Badge>
             <div className="space-y-3">
-              <h1 className="text-4xl text-white sm:text-5xl">Your order is with the team</h1>
-              <p className="max-w-2xl text-sm leading-7 text-white/74 sm:text-base">
+              <h1 className="text-4xl text-foreground sm:text-5xl">
+                {orderAction === "updated" ? "Your items were added to the current order" : "Your order is with the team"}
+              </h1>
+              <p className="max-w-2xl text-sm leading-7 text-foreground/74 sm:text-base">
                 Thank you for ordering from {lastOrder.businessName || menuQuery.data?.business.name || "ServeFlow"}.
-                The business can now manage this order from the live dashboard for {sourceName}.
+                {orderAction === "updated"
+                  ? ` The table's active order has been updated for ${sourceName}.`
+                  : ` The business can now manage this order from the live dashboard for ${sourceName}.`}
               </p>
             </div>
           </div>
 
-          <div className="rounded-[32px] border border-white/15 bg-white/10 p-6 text-white backdrop-blur">
+          <div className="rounded-[32px] border border-white/70 bg-white/82 p-6 text-foreground shadow-sm backdrop-blur">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-900">
               <CheckCircle2 className="h-8 w-8" />
             </div>
-            <p className="mt-4 text-xs font-semibold uppercase tracking-[0.22em] text-white/68">
+            <p className="mt-4 text-xs font-semibold uppercase tracking-[0.22em] text-foreground/62">
               Reference
             </p>
             <p className="mt-2 font-display text-4xl">#{lastOrder.orderId.slice(0, 8)}</p>
-            <p className="mt-2 text-sm text-white/74">{formatGuestDateTime(lastOrder.placedAt)}</p>
+            <p className="mt-2 text-sm text-foreground/72">{formatGuestDateTime(lastOrder.placedAt)}</p>
           </div>
         </div>
       </section>

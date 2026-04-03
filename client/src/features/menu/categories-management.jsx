@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pencil, Plus, Trash2 } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import { EmptyState } from "@/components/empty-state";
 import { PageShell } from "@/components/layout/page-shell";
 import {
@@ -31,9 +32,11 @@ const initialForm = {
 
 export function CategoriesManagement() {
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [editingCategory, setEditingCategory] = useState(null);
   const [formState, setFormState] = useState(initialForm);
   const [errorMessage, setErrorMessage] = useState("");
+  const editorRef = useRef(null);
 
   const categoriesQuery = useQuery({
     queryKey: ["categories"],
@@ -76,6 +79,9 @@ export function CategoriesManagement() {
     setEditingCategory(null);
     setFormState(initialForm);
     setErrorMessage("");
+    const nextSearchParams = new URLSearchParams(searchParams);
+    nextSearchParams.delete("mode");
+    setSearchParams(nextSearchParams, { replace: true });
   }
 
   function handleSubmit(event) {
@@ -96,7 +102,32 @@ export function CategoriesManagement() {
       isActive: category.isActive
     });
     setErrorMessage("");
+    const nextSearchParams = new URLSearchParams(searchParams);
+    nextSearchParams.delete("mode");
+    setSearchParams(nextSearchParams, { replace: true });
+    window.requestAnimationFrame(() => {
+      editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   }
+
+  function openCreateEditor() {
+    const nextSearchParams = new URLSearchParams(searchParams);
+    nextSearchParams.set("mode", "create");
+    setSearchParams(nextSearchParams, { replace: true });
+  }
+
+  useEffect(() => {
+    if (searchParams.get("mode") !== "create") {
+      return;
+    }
+
+    setEditingCategory(null);
+    setFormState(initialForm);
+    setErrorMessage("");
+    window.requestAnimationFrame(() => {
+      editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [searchParams]);
 
   function handleDelete(category) {
     const confirmed = window.confirm(
@@ -116,7 +147,7 @@ export function CategoriesManagement() {
       title="Categories"
       description="Organize your menu into sections like Starters, Main Course, Drinks, etc."
       actions={
-        <Button onClick={resetEditor}>
+        <Button onClick={openCreateEditor}>
           <Plus className="mr-2 h-4 w-4" />
           New Category
         </Button>
@@ -262,12 +293,13 @@ export function CategoriesManagement() {
                 title="No categories yet"
                 description="Add your first category like 'Starters', 'Main Course', or 'Drinks'."
                 actionLabel="Add Category"
-                onAction={resetEditor}
+                onAction={openCreateEditor}
               />
             )}
           </CardContent>
         </Card>
 
+        <div ref={editorRef}>
         <Card className="bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(247,240,228,0.95))]">
           <CardHeader>
             <CardTitle>{editingCategory ? "Edit Category" : "Add New Category"}</CardTitle>
@@ -344,6 +376,7 @@ export function CategoriesManagement() {
             </form>
           </CardContent>
         </Card>
+        </div>
       </section>
     </PageShell>
   );

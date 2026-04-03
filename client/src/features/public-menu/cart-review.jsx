@@ -113,8 +113,12 @@ export function CartReview() {
     <div className="space-y-6">
       <section className="rounded-[36px] border border-border/80 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.98),rgba(247,240,228,0.92)_56%,rgba(61,46,26,0.96)_100%)] p-6 shadow-glow sm:p-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="space-y-4 text-white">
-            <Button asChild className="border-white/20 bg-white/10 text-white hover:bg-white/15" variant="outline">
+          <div className="space-y-4">
+            <Button
+              asChild
+              className="border-white/60 bg-white/86 text-foreground hover:bg-white"
+              variant="outline"
+            >
               <Link to={`/menu/${safeBusinessSlug}/${safeSourceSlug}`}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to menu
@@ -122,13 +126,22 @@ export function CartReview() {
             </Button>
 
             <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/68">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-foreground/68">
                 Review your selection
               </p>
-              <h1 className="text-4xl text-white sm:text-5xl">Cart for {menuQuery.data?.source.name || "this source"}</h1>
-              <p className="max-w-2xl text-sm leading-7 text-white/74 sm:text-base">
+              <h1 className="text-4xl text-foreground sm:text-5xl">Cart for {menuQuery.data?.source.name || "this source"}</h1>
+              <p className="max-w-2xl text-sm leading-7 text-foreground/74 sm:text-base">
                 Confirm quantities, add notes for the kitchen, and send the order once everything
                 looks right.
+              </p>
+            </div>
+
+            <div className="rounded-[28px] border border-white/70 bg-white/84 px-4 py-4 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-foreground/60">
+                Order session
+              </p>
+              <p className="mt-2 text-lg font-semibold text-foreground">
+                {menuQuery.data?.activeOrder ? "Items will be added to your active order" : "This checkout will start a new order"}
               </p>
             </div>
           </div>
@@ -351,8 +364,8 @@ export function CartReview() {
 
 function CartHeroStat({ label, value }) {
   return (
-    <div className="rounded-[28px] border border-white/15 bg-white/10 px-4 py-4 text-white backdrop-blur">
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/68">{label}</p>
+    <div className="rounded-[28px] border border-white/70 bg-white/82 px-4 py-4 text-foreground shadow-sm backdrop-blur">
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/62">{label}</p>
       <p className="mt-3 text-lg font-semibold">{value}</p>
     </div>
   );

@@ -77,9 +77,10 @@ export function toOrderDetailDto(order) {
   };
 }
 
-export function toPublicOrderPlacedDto(order) {
+export function toPublicOrderPlacedDto(order, options = {}) {
   return {
     orderId: order.id,
+    action: options.action || "created",
     status: fromPrismaOrderStatus(order.status),
     total: moneyToString(order.total),
     placedAt: order.placedAt.toISOString(),
