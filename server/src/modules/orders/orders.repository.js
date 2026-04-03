@@ -128,6 +128,31 @@ export function updateOrderStatusById(orderId, status, paidAt) {
   });
 }
 
+export function deleteOrderItemsByOrderId(tx, businessId, orderId) {
+  return tx.orderItem.deleteMany({
+    where: {
+      orderId,
+      businessId
+    }
+  });
+}
+
+export function updateOrderTotals(tx, orderId, totals) {
+  return tx.order.update({
+    where: {
+      id: orderId
+    },
+    data: {
+      subtotal: totals.subtotal,
+      taxAmount: totals.taxAmount,
+      discountAmount: totals.discountAmount,
+      total: totals.total,
+      customerNote: totals.customerNote
+    },
+    include: orderInclude
+  });
+}
+
 export function listRecentOrdersByBusinessId(businessId, limit) {
   return prisma.order.findMany({
     where: {

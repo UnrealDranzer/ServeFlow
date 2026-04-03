@@ -2,6 +2,7 @@ import { sendSuccess } from "../../utils/responses.js";
 import { requireAuthContext, requireBusinessId } from "../../utils/tenant-context.js";
 import {
   createManualOrderForBusiness,
+  editOrderItemsForBusiness,
   getOrderDetails,
   listOrders,
   updateOrderStatusForBusiness
@@ -31,6 +32,13 @@ export async function createManualOrderController(req, res) {
 export async function updateOrderStatusController(req, res) {
   const businessId = requireBusinessId(req);
   const order = await updateOrderStatusForBusiness(businessId, req.params.id, req.body.status);
+
+  sendSuccess(res, order);
+}
+
+export async function editOrderItemsController(req, res) {
+  const businessId = requireBusinessId(req);
+  const order = await editOrderItemsForBusiness(businessId, req.params.id, req.body);
 
   sendSuccess(res, order);
 }

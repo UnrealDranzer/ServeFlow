@@ -29,3 +29,8 @@ export async function updateOrderStatusRequest(orderId, status) {
 
   return unwrapResponse(response);
 }
+
+export async function editOrderItemsRequest(orderId, payload) {
+  const response = await apiClient.put(`/orders/${orderId}/items`, payload);
+  return unwrapResponse(response);
+}

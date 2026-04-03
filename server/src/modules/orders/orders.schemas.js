@@ -52,6 +52,11 @@ export const manualOrderBodySchema = z.object({
   items: z.array(orderLineItemSchema).min(1).max(25)
 });
 
+export const editOrderBodySchema = z.object({
+  customerNote: optionalNullableTrimmedString(500),
+  items: z.array(orderLineItemSchema).min(1).max(25)
+});
+
 export const updateOrderStatusBodySchema = z.object({
   status: z.enum(orderStatusValues)
 });

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowRightCircle, RefreshCcw } from "lucide-react";
+import { ArrowRightCircle, Pencil, Printer, RefreshCcw } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { PageShell } from "@/components/layout/page-shell";
 import { StatusBadge } from "@/components/status-badge";
@@ -25,6 +25,8 @@ import {
   getOrdersRequest,
   updateOrderStatusRequest
 } from "@/features/orders/orders-api";
+import { EditOrderDialog } from "@/features/orders/edit-order-dialog";
+import { printBill } from "@/features/orders/print-bill";
 
 const statusOptions = [
   { value: "", label: "All" },
@@ -53,6 +55,8 @@ const nextStatusesMap = {
   cancelled: []
 };
 
+const editableStatuses = ["new", "accepted", "preparing"];
+
 export function OrdersManagement() {
   const auth = useAuth();
   const queryClient = useQueryClient();
@@ -60,6 +64,7 @@ export function OrdersManagement() {
   const [orderTypeFilter, setOrderTypeFilter] = useState("");
   const [sourceFilter, setSourceFilter] = useState("");
   const [selectedOrderId, setSelectedOrderId] = useState("");
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   const sourcesQuery = useQuery({
     queryKey: ["order-sources"],
@@ -108,8 +113,10 @@ export function OrdersManagement() {
   });
 
   const currency = auth.business?.currency || "INR";
+  const businessName = auth.business?.name || "Restaurant";
   const timezone = "Asia/Kolkata";
   const availableNextStatuses = nextStatusesMap[orderDetailQuery.data?.status] || [];
+  const canEdit = editableStatuses.includes(orderDetailQuery.data?.status);
 
   return (
     <PageShell
@@ -259,7 +266,40 @@ export function OrdersManagement() {
         {/* Order Details */}
         <Card className="border-none bg-muted/10 shadow-sm border-l border-border/50">
           <CardHeader className="pb-3 border-b border-border/30">
-            <CardTitle className="text-base sm:text-lg font-bold">Order Details</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base sm:text-lg font-bold">Order Details</CardTitle>
+              {orderDetailQuery.data ? (
+                <div className="flex gap-2">
+                  {canEdit ? (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="font-bold text-xs"
+                      onClick={() => setIsEditOpen(true)}
+                    >
+                      <Pencil className="mr-1.5 h-3.5 w-3.5" />
+                      Edit Order
+                    </Button>
+                  ) : null}
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="font-bold text-xs"
+                    onClick={() =>
+                      printBill({
+                        order: orderDetailQuery.data,
+                        businessName,
+                        currency,
+                        timezone
+                      })
+                    }
+                  >
+                    <Printer className="mr-1.5 h-3.5 w-3.5" />
+                    Print Bill
+                  </Button>
+                </div>
+              ) : null}
+            </div>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-6">
             {orderDetailQuery.isLoading ? (
@@ -377,6 +417,16 @@ export function OrdersManagement() {
           </CardContent>
         </Card>
       </section>
+
+      {isEditOpen && orderDetailQuery.data ? (
+        <EditOrderDialog
+          order={orderDetailQuery.data}
+          onClose={() => setIsEditOpen(false)}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ["orders"] });
+          }}
+        />
+      ) : null}
     </PageShell>
   );
 }

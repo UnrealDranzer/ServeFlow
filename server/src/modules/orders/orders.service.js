@@ -5,10 +5,12 @@ import { toOrderDetailDto, toOrderListDto } from "./orders.dto.js";
 import { buildOrderDraft } from "./order-builder.js";
 import {
   createOrderRecord,
+  deleteOrderItemsByOrderId,
   findActiveOrderSourceForBusiness,
   findOrderById,
   listOrdersByBusinessId,
-  updateOrderStatusById
+  updateOrderStatusById,
+  updateOrderTotals
 } from "./orders.repository.js";
 import { findBusinessById } from "../businesses/businesses.repository.js";
 
@@ -21,6 +23,8 @@ const allowedStatusTransitions = {
   paid: [],
   cancelled: []
 };
+
+const editableStatuses = ["NEW", "ACCEPTED", "PREPARING"];
 
 function assertBusinessAllowsManualOrders(business) {
   const orderMode = fromPrismaOrderMode(business.orderMode);
@@ -139,6 +143,50 @@ export async function updateOrderStatusForBusiness(businessId, orderId, nextStat
     toPrismaOrderStatus(nextStatus),
     nextStatus === "paid" ? new Date() : undefined
   );
+
+  return toOrderDetailDto(updatedOrder);
+}
+
+export async function editOrderItemsForBusiness(businessId, orderId, input) {
+  const order = await findOrderById(businessId, orderId);
+
+  if (!order) {
+    throw ApiError.notFound("Order not found.");
+  }
+
+  if (!editableStatuses.includes(order.status)) {
+    throw ApiError.conflict(
+      `Orders in '${fromPrismaOrderStatus(order.status)}' status cannot be edited.`
+    );
+  }
+
+  const updatedOrder = await prisma.$transaction(async (tx) => {
+    const draft = await buildOrderDraft({
+      tx,
+      businessId,
+      items: input.items
+    });
+
+    await deleteOrderItemsByOrderId(tx, businessId, orderId);
+
+    if (draft.orderItemsData.length > 0) {
+      await tx.orderItem.createMany({
+        data: draft.orderItemsData.map((item) => ({
+          ...item,
+          orderId,
+          businessId
+        }))
+      });
+    }
+
+    return updateOrderTotals(tx, orderId, {
+      subtotal: draft.subtotal,
+      taxAmount: draft.taxAmount,
+      discountAmount: draft.discountAmount,
+      total: draft.total,
+      customerNote: input.customerNote !== undefined ? input.customerNote : order.customerNote
+    });
+  });
 
   return toOrderDetailDto(updatedOrder);
 }
